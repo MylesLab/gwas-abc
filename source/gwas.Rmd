@@ -1,0 +1,74 @@
+---
+title: "harvest_date_gwas"
+author: "Sophie Watts"
+date: '2021-05-03'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = F, warning = F)
+
+library(tidyverse)
+
+#load phenotype data
+pheno_data <- read_csv("../data/pheno_meta_data.csv")
+
+#load indvs from genetic data
+geno_samples <- read_delim("../data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001.nosex", 
+    "\t", escape_double = FALSE, col_names = FALSE, 
+    trim_ws = TRUE)
+geno_samples <- geno_samples$X1
+
+#filter phenotype
+pheno_data <- pheno_data %>% filter(apple_id %in% geno_samples)
+
+write.csv(pheno_data, file = "../outputs/geno_pheno_meta_data.csv", quote = F, row.names = F)
+
+
+```
+
+#Run gwas for harvest date to test running R over the command line.
+
+```{r prelim_gwas}
+
+harvest_date_pheno <- pheno_data %>% select(apple_id, date_jul_17_harv) %>% drop_na()
+write.table(harvest_date_pheno, "../outputs/harvest_date_pheno.txt", sep = "\t", row.names = F, col.names = F)
+
+harvest_date_indvs <- harvest_date_pheno %>% mutate(FID = apple_id) %>% select(apple_id, FID)
+write.table(harvest_date_indvs, "../outputs/harvest_date_indvs.txt", sep = "\t", row.names = F, col.names = F)
+
+#Use plink to filter indv with phenotype data and to filter for MAF of 0.01.
+/project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file /project/6003429/myles_lab/abc_gwas/genotype_filtering/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001 --keep harvest_date_indvs.txt --out abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_harvest_date_maf001 --maf 0.01 --recode
+#After filtering for accessions with harvest data and MAF 0.01 we have 255,664 SNPs and 811 accessions.
+
+#make a raw file
+/project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_harvest_date_maf001 --out abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_harvest_date_maf001 --recode A
+
+
+#Make kinship matrix with TASSEL.
+#!/bin/bash
+#SBATCH --time=24:00:00
+#SBATCH --mem=16G
+#SBATCH --output=bedrocan_gwas.out
+#SBATCH --job-name=bedrocan_gwas
+
+module load java
+
+/project/6003429/myles_lab/bin/tassel5/tasseladmin-tassel-5-standalone-68140c7ab0dc/run_pipeline.pl -plink -ped abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_harvest_date_maf001.ped -map abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_harvest_date_maf001.map -KinshipPlugin -method Centered_IBS -endPlugin -export abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_harvest_date_maf001_kinship.txt -exportType SqrMatrix
+
+#Run PCA with TASSEL.
+#!/bin/bash
+#SBATCH --time=24:00:00
+#SBATCH --mem=64G
+#SBATCH --output=bedrocan_gwas.out
+#SBATCH --job-name=bedrocan_gwas
+
+module load java
+
+/project/6003429/myles_lab/bin/tassel5/tasseladmin-tassel-5-standalone-68140c7ab0dc/run_pipeline.pl -fork1 -plink -ped abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_harvest_date_maf001.ped -map abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_harvest_date_maf001.map -PrincipalComponentsPlugin -covariance true -endPlugin -export abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_harvest_date_maf001 -runfork1
+
+
+```
+
+
+

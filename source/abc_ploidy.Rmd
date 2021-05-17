@@ -1,0 +1,35 @@
+---
+title: "abc_ploidy"
+author: "Sophie Watts"
+date: '2021-05-13'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = F, warning = F)
+
+library(tidyverse)
+
+```
+Calculate heterozygosity per individual to assess ploidy in the ABC.
+```{r}
+
+#Use plink to filter indv with phenotype data and to filter for MAF of 0.01.
+/project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file /project/6003429/myles_lab/abc_gwas/genotype_filtering/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001 --out abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_het --het
+#260399 SNPs, 1054 apples
+
+#load het file
+het <- read_table2("../data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_het.het")
+
+het <- het %>% rename(homo = 'O(HOM)', total = 'N(NM)') %>% mutate(het = total - homo) %>% mutate(prop_het = het/total)
+
+p <- ggplot(het, aes(x=prop_het)) + 
+  geom_histogram(bins = 50, color = "black", fill = "gray")+
+  theme_classic()+
+  xlab("Heterozygosity by individual")+
+  ylab("Count")
+
+ggsave(p, file = "../figures/hetero_indv.pdf")
+
+```
+
