@@ -1,0 +1,164 @@
+---
+title: "GWAS scripts"
+author: "Sophie Watts"
+date: '2021-06-28'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+#Filter phenotype file and create list of apple IDs with data for each phenotype.
+```{r phenotype_filtering}
+#load pheno_list
+pheno_list <- read_csv("outputs/pheno_list.txt", 
+                       col_names = FALSE)
+
+pheno_list <- pheno_list$X1
+
+#make a table to record the sample sizes for each phenotype.
+sample_size = matrix(ncol =38, nrow = 1)
+sample_size = data.frame(sample_size)
+colnames(sample_size) <- pheno_list
+
+#pheno table
+pheno_data <- read_csv("outputs/geno_pheno_meta_data.csv")
+
+#write files that contain apple IDs for a phenotype and phenotype data
+for (i in pheno_list){
+  pheno <- pheno_data[, c("apple_id", i)]
+  pheno <- na.omit(pheno)
+  indvs <- pheno %>% mutate(FID = apple_id) %>% select(apple_id, FID)
+  write.table(pheno,file = paste("outputs/phenotypes4gwas/",i,"_phenotype.txt", sep = ""), sep = "\t", row.names = F, col.names = F)
+  write.table(indvs, file = paste("outputs/phenotypes4gwas/",i,"_indvs.txt", sep = ""), sep = "\t", row.names = F, col.names = F)
+  sample_size[,i] <- nrow(indvs)
+}
+
+#Format and save sample size file.
+sample_size <- tidyr::pivot_longer(sample_size, cols = c("acidity_16_stor":"time_ripen_2017"), names_to = "phenotype", values_to = "size")
+
+sample_size <- sample_size %>% rename(Phenotype = phenotype, 'Sample Size' = size)
+
+write.table(sample_size, file = "/outputs/phenotype_sample_sizes.txt", sep = "\t", row.names = F, col.names = T)
+
+```
+#Run a loop to generate script to run plink genotype filtering.
+```{r genotype_filtering}
+
+#load phenotype names
+pheno_list <- read_csv("../outputs/pheno_list.txt", 
+                       col_names = FALSE)
+pheno_list <- pheno_list$X1
+
+plink_geno = list()
+for (i in pheno_list){
+  script=paste0("/project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file /project/6003429/myles_lab/abc_gwas/genotype_filtering/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001 --keep /project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/pheno_indvs/",i,"_indvs.txt --out /project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/",i,"_geno_filtered --maf 0.01 --recode")
+  plink_geno[[i]] = script
+}
+
+write.table(paste(plink_geno[1:38]), "../shell_scripts/genotype_filtering_plink.sh", sep="\t", row.names = F, quote = F, col.names = F)
+
+```
+#Run loop to generate script to make kinship matrices.
+```{r kinship}
+
+#load phenotype names
+pheno_list <- read_csv("../outputs/pheno_list.txt", 
+                       col_names = FALSE)
+pheno_list <- pheno_list$X1
+
+kinship_list = list()
+for (i in pheno_list){
+  input = "/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/"
+  output = "/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/kinship/"
+  script=paste0("/project/6003429/myles_lab/bin/tassel5/tasseladmin-tassel-5-standalone-68140c7ab0dc/run_pipeline.pl -plink -ped ",input,i,"_geno_filtered.ped -map ",input,i,"_geno_filtered.map -KinshipPlugin -method Centered_IBS -endPlugin -export ",output,i,"_kinship.txt -exportType SqrMatrix")
+  kinship_list[[i]] = script
+}
+write.table(paste(kinship_list[1:38]), "../shell_scripts/kinship.sh", sep="\t", row.names = F, quote = F, col.names = F)
+
+```
+#Run loop to generate script to calculate PCs.
+```{r pca}
+
+#load phenotype names
+pheno_list <- read_csv("../outputs/pheno_list.txt", 
+                       col_names = FALSE)
+pheno_list <- pheno_list$X1
+
+pca_list = list()
+for (i in pheno_list){
+  input = "/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/"
+  output = "/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/pca/"
+  script=paste0("/project/6003429/myles_lab/bin/tassel5/tasseladmin-tassel-5-standalone-68140c7ab0dc/run_pipeline.pl -Xms512m -Xmx10g -fork1 -plink -ped ",input,i,"_geno_filtered.ped -map ",input,i,"_geno_filtered.map -PrincipalComponentsPlugin -covariance true -endPlugin -export ",output,i,"_pca_ -runfork1")
+  pca_list[[i]] = script
+}
+write.table(paste(pca_list[1:38]), "../shell_scripts/pca.sh", sep="\t", row.names = F, quote = F, col.names = F)
+
+#The heap size needed to be increased for precocity and flowering time (these are the largest ped and map so this makes sense)
+
+
+
+```
+#Recode map and ped files to create raw genotype files for GWAS.
+```{r geno_recode}
+
+#make raw file to caluclate the effective number of markers.
+/project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file /project/6003429/myles_lab/abc_gwas/genotype_filtering/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001 --out /project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001 --recode A
+
+
+
+```
+#Run loop to generate script for GWAS with TASSEL.
+```{r tassel_gwas}
+
+#load phenotype names
+pheno_list <- read_csv("../outputs/pheno_list.txt", 
+                       col_names = FALSE)
+pheno_list <- pheno_list$X1
+
+#set paths to files.
+kinship="/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/kinship/"
+pcs="/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/pca/"
+geno="/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/"
+pheno="/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/phenotype_data/tassel_format/"
+output="/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/tassel_gwas/"
+
+tassel_list = list()
+for (i in pheno_list){
+  script=paste0("/project/6003429/myles_lab/bin/tassel5/tasseladmin-tassel-5-standalone-68140c7ab0dc/run_pipeline.pl -fork1 -plink -ped ",geno,i,"_geno_filtered.ped -map ",geno,i,"_geno_filtered.map, -fork2 -r 20191212_bedro_gwas_phenos.txt —fork3 -importGuess ",pcs,i,"_pca_1.txt -combine4 -input1 -input2 -input3 -intersect -fork5 -importGuess ",kinship,i,"_kinship.txt -combine6 -input4 -input5 -mlm -mlmVarCompEst P3D -mlmCompressionLevel Optimum —mlmOutputFile ",output,i)
+  tassel_list[[i]] = script
+}
+write.table(paste(tassel_list[1:38]), "../shell_scripts/pca.sh", sep="\t", row.names = F, quote = F, col.names = F)
+
+
+```
+#MLMM GWAS
+```{r mlmm_gwas}
+
+for i in pheno_list{
+  pheno = 
+  geno =
+  kinship =
+  pcs =
+  gwas_output <- mlmm_cof(Y=pheno, X=geno, cofs= pcs, K=kinship,
+                      nbchunks=10, maxsteps=10)
+  pdf(file = "harv_date_mlmm_manhat.pdf")
+  plot_opt_GWAS(gwas_output, 'extBIC', map, 1, main="Harvest Date (optimal MLMM)", abline(h=(-log10(0.05/255664)), col="black", lty=2))
+  dev.off()
+  
+  mlmm_pvals <- gwas_output[["opt_extBIC"]][["out"]]
+  write.table(mlmm_pvals, file = "harv_date_mlmm_pvals.csv", quote = F, sep = ",", row.names = F)
+  
+  pdf(file = "harv_date_mlmm_qq.pdf")
+  qqplot <- qq(mlmm_pvals[,2], main = "Harvest Date QQ plot (optimal MLMM)")
+  dev.off()
+}
+  
+
+
+
+
+```
+

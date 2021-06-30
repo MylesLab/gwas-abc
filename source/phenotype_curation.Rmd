@@ -1,0 +1,40 @@
+---
+title: "phenotype_curation"
+author: "Sophie Watts"
+date: '2021-06-24'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = F, warning = F)
+
+library(tidyverse)
+library(snpStats)
+library(patchwork)
+```
+
+#Filter phenotype file.
+
+```{r}
+
+#load indvs from genetic data
+geno_samples <- read_delim("../data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001.nosex", 
+    "\t", escape_double = FALSE, col_names = FALSE, 
+    trim_ws = TRUE)
+geno_samples <- geno_samples$X1
+
+#filter phenotype
+pheno_data <- pheno_data %>% filter(apple_id %in% geno_samples)
+
+write.csv(pheno_data, file = "../outputs/geno_pheno_meta_data.csv", quote = F, row.names = F)
+
+#make a list of the phenotypes to be used in the GWAS loop.
+
+pheno_list <- colnames(pheno_data)
+
+pheno_list <- pheno_list[c(10:46,48)]
+
+write.table(pheno_list, "../outputs/pheno_list.txt", sep = "\t", row.names = F, col.names = F, quote = F)
+
+```
+

@@ -1,0 +1,182 @@
+---
+title: "PCA and LD decay"
+author: "Sophie Watts"
+date: '2021-05-25'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = F, warning = F)
+
+library(viridis)
+library(tidyverse)
+library(wesanderson)
+```
+
+#Principal components analysis.
+
+```{r pca}
+
+#remove unanchored SNPs
+snps <- read_table2("data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001.frq")
+snps <- snps %>% filter(CHR == 0) %>% select(SNP)
+#save file to be excluded using PLINK
+write.table(snps, "outputs/contig_snps_remove.txt", sep = "\t", row.names = F, col.names = F, quote = F)
+
+/project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file /project/6003429/myles_lab/abc_gwas/genotype_filtering/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001 --exclude contig_snps_remove.txt --out abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs --recode
+
+#252642 SNPs remain.
+
+#LD prune -indep-pairwise 10 3 0.5
+/project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs -indep-pairwise 10 3 0.5 --out abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs
+
+#remove 87,650 SNPs
+/project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs --exclude abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs.prune.out --out abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs_pruned --recode
+#164992 SNPs remain
+
+#run pca with TASSEL script
+
+#load tassel pca output
+abc_pcs <- read_table2("data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs_pruned1.txt", 
+    skip = 2)
+pheno_data <- read_csv("outputs/geno_pheno_meta_data.csv")
+
+pcs_pheno <- left_join(abc_pcs, pheno_data, by = c("Taxa"="apple_id"))
+
+pcs_pheno <- pcs_pheno %>% mutate(bin_species = species)
+
+pcs_pheno <- pcs_pheno %>%
+  mutate(bin_species = case_when(
+  species == "sieversii"  ~ 0,
+  species == "domestica"  ~ 1,
+  species == "hybrid"  ~ 2,
+  species == "sylvestris" ~3))
+
+pcs_pheno <- pcs_pheno %>%
+  mutate(bin_use = case_when(
+  use == "cider"  ~ 0,
+  use == "dessert"  ~ 1,
+  use == "crab"  ~ 2,
+  use == "wild" ~3,
+  use == "rootstock" ~4))
+
+pcs_pheno <- pcs_pheno %>%
+  mutate(bin_world = case_when(
+  world == "old"  ~ 0,
+  world == "new"  ~ 1))
+
+
+pcs_pheno$bin_species <- as.factor(pcs_pheno$bin_species)
+pcs_pheno$bin_use <- as.factor(pcs_pheno$bin_use)
+pcs_pheno$bin_world <- as.factor(pcs_pheno$bin_world)
+
+
+eigen <- read_delim("data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs_pruned2.txt", 
+    "\t", escape_double = FALSE, trim_ws = TRUE)
+
+eigen <- eigen %>%  mutate(per_var = `proportion of total`*100)
+
+
+pca_species <- ggplot(pcs_pheno, aes(x=PC1, y=PC2, color=bin_species))+
+  geom_point(size=3, stroke=0, alpha=0.8)+
+  theme_bw()+
+  coord_fixed()+
+  scale_color_manual(name = "Species",values=wes_palette(n=4, name="GrandBudapest1"), labels = c("M. sieversii", "M. domestica", "Hybrid", "M. sylvestris"))+
+  labs(x=paste0("PC1 (5.5%)"), y=paste0("PC2 (3.1%)"))+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", size = 0.2), plot.title = element_text(size = 9))
+ggsave("figures/pca_species.pdf", plot = pca_species)
+
+
+pca_use <- ggplot(pcs_pheno, aes(x=PC1, y=PC2, color=bin_use))+
+  geom_point(size=3, stroke=0, alpha=0.8)+
+  theme_bw()+
+  coord_fixed()+
+  scale_color_manual(name = "Use",values=wes_palette(n=5, name="Darjeeling1"), labels = c("Cider", "Dessert", "Crab", "Wild", "Rootstock"))+
+  labs(x=paste0("PC1 (5.5%)"), y=paste0("PC2 (3.1%)"))+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", size = 0.2), plot.title = element_text(size = 9))
+ggsave("figures/pca_use.pdf", plot = pca_species)
+
+pca_world <- ggplot(pcs_pheno, aes(x=PC1, y=PC2, color=bin_world))+
+  geom_point(size=3, stroke=0, alpha=0.8)+
+  theme_bw()+
+  coord_fixed()+
+  scale_color_manual(name = "World",values=wes_palette(n=2, name="GrandBudapest1"), labels = c("Old", "New"))+
+  labs(x=paste0("PC1 (5.5%)"), y=paste0("PC2 (3.1%)"))+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", size = 0.2), plot.title = element_text(size = 9))
+ggsave("figures/pca_world.pdf", plot = pca_species)
+
+pca_harvest <- ggplot(pcs_pheno, aes(x=PC1, y=PC2, color=date_jul_17_harv))+
+  geom_point(size=3, stroke=0, alpha=0.8)+
+  theme_bw()+
+  coord_fixed()+
+  scale_colour_viridis(name = "Harvest Date (Julian date)", option = "magma", direction = -1)+
+  labs(x=paste0("PC1 (5.5%)"), y=paste0("PC2 (3.1%)"))+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", size = 0.2), plot.title = element_text(size = 9))
+ggsave("figures/pca_harvest_date.pdf", plot = pca_harvest)
+
+pca_flower <- ggplot(pcs_pheno, aes(x=PC1, y=PC2, color=flowering_jul_16_harv))+
+  geom_point(size=3, stroke=0, alpha=0.8)+
+  theme_bw()+
+  coord_fixed()+
+  scale_colour_viridis(name = "Flowering time (Julian date)", option = "magma", direction = -1)+
+  labs(x=paste0("PC1 (5.5%)"), y=paste0("PC2 (3.1%)"))+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", size = 0.2), plot.title = element_text(size = 9))
+ggsave("figures/pca_flower.pdf", plot = pca_flower)
+
+pca_weight <- ggplot(pcs_pheno, aes(x=PC1, y=PC2, color=weight_avg_17_harv))+
+  geom_point(size=3, stroke=0, alpha=0.8)+
+  theme_bw()+
+  coord_fixed()+
+  scale_colour_viridis(name = "Weight (g)", option = "magma", direction = -1)+
+  labs(x=paste0("PC1 (5.5%)"), y=paste0("PC2 (3.1%)"))+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", size = 0.2), plot.title = element_text(size = 9))
+ggsave("figures/pca_weight.pdf", plot = pca_weight)
+
+cumulative_eigen <- eigen %>% filter(PC < 10) %>% mutate(PC = PC +1)
+
+cumulative_pcs <- ggplot(cumulative_eigen, aes(x = PC)) +
+  theme_bw()+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", size = 0.2), plot.title = element_text(size = 9))+
+  geom_line(aes(y = `cumulative proportion`), colour="#41ab5d") +
+  geom_point(aes(y = `cumulative proportion`), colour="#41ab5d") +
+  ylab(label="% variance explained") + 
+  xlab("PC")+
+  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10))
+ggsave("figures/cumulative_pcs.pdf", plot = cumulative_pcs)
+
+
+#load data
+
+pheno_cor <- select(pcs_pheno,PC2, acidity_16_stor:time_ripen_2017)
+
+pheno_cor <- as.matrix(pheno_cor)
+
+r2 = p = c()
+for (i in 2:ncol(pheno_cor)) {
+  year_correlation <- cor.test(pheno_cor[,"PC2"], pheno_cor[,i], method = "pearson")
+  r2[i] = year_correlation$estimate^2
+  p[i] = year_correlation$p.val
+}
+cor_p = p * 39 #43 comparisons to multiple test correct for.
+pc1_vs_phenos = cbind(colnames(pheno_cor), r2, cor_p)
+pc1_vs_phenos = pc1_vs_phenos[-1,]
+pc1_vs_phenos <- as.data.frame(pc1_vs_phenos)
+pc1_vs_phenos$cor_p <- as.numeric(as.character(pc1_vs_phenos$cor_p))
+pc1_vs_phenos$r2 <- as.numeric(as.character(pc1_vs_phenos$r2))
+pc1_vs_phenos$r2 <- signif(pc1_vs_phenos$r2, 3)
+pc1_vs_phenos <- pc1_vs_phenos %>% arrange(desc(r2))
+
+
+```
+
+#LD decay curve.
+
+```{r}
+
+/project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs --out abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs_ld --r2 --ld-window-kb 1000 --ld-window-r2 0
+
+#calculate background LD
+/project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs --out abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs_back_ld --r2 inter-chr --thin 0.01 --ld-window-r2 0
+
+```
+
