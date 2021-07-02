@@ -91,23 +91,10 @@ pca_list = list()
 for (i in pheno_list){
   input = "/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/"
   output = "/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/pca/"
-  script=paste0("/project/6003429/myles_lab/bin/tassel5/tasseladmin-tassel-5-standalone-68140c7ab0dc/run_pipeline.pl -Xms512m -Xmx10g -fork1 -plink -ped ",input,i,"_geno_filtered.ped -map ",input,i,"_geno_filtered.map -PrincipalComponentsPlugin -covariance true -endPlugin -export ",output,i,"_pca_ -runfork1")
+  script=paste0("/project/6003429/myles_lab/bin/tassel5/tasseladmin-tassel-5-standalone-68140c7ab0dc/run_pipeline.pl -Xms512m -Xmx20g -fork1 -plink -ped ",input,i,"_geno_filtered.ped -map ",input,i,"_geno_filtered.map -PrincipalComponentsPlugin -covariance true -endPlugin -export ",output,i,"_pca_ -runfork1")
   pca_list[[i]] = script
 }
 write.table(paste(pca_list[1:38]), "../shell_scripts/pca.sh", sep="\t", row.names = F, quote = F, col.names = F)
-
-#The heap size needed to be increased for precocity and flowering time (these are the largest ped and map so this makes sense)
-
-
-
-```
-#Recode map and ped files to create raw genotype files for GWAS.
-```{r geno_recode}
-
-#make raw file to caluclate the effective number of markers.
-/project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file /project/6003429/myles_lab/abc_gwas/genotype_filtering/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001 --out /project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001 --recode A
-
-
 
 ```
 #Run loop to generate script for GWAS with TASSEL.
@@ -127,17 +114,39 @@ output="/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/tassel_gwas/"
 
 tassel_list = list()
 for (i in pheno_list){
-  script=paste0("/project/6003429/myles_lab/bin/tassel5/tasseladmin-tassel-5-standalone-68140c7ab0dc/run_pipeline.pl -fork1 -plink -ped ",geno,i,"_geno_filtered.ped -map ",geno,i,"_geno_filtered.map, -fork2 -r 20191212_bedro_gwas_phenos.txt —fork3 -importGuess ",pcs,i,"_pca_1.txt -combine4 -input1 -input2 -input3 -intersect -fork5 -importGuess ",kinship,i,"_kinship.txt -combine6 -input4 -input5 -mlm -mlmVarCompEst P3D -mlmCompressionLevel Optimum —mlmOutputFile ",output,i)
+  script=paste0("/project/6003429/myles_lab/bin/tassel5/tasseladmin-tassel-5-standalone-68140c7ab0dc/run_pipeline.pl -fork1 -plink -ped ",geno,i,"_geno_filtered.ped -map ",geno,i,"_geno_filtered.map -fork2 -r ",pheno,i,"_pheno_reformated.txt —fork3 -importGuess ",pcs,i,"_pca_1.txt -combine4 -input1 -input2 -input3 -intersect -fork5 -importGuess ",kinship,i,"_kinship.txt -combine6 -input4 -input5 -mlm -mlmVarCompEst P3D -mlmCompressionLevel Optimum —mlmOutputFile ",output,i)
   tassel_list[[i]] = script
 }
-write.table(paste(tassel_list[1:38]), "../shell_scripts/pca.sh", sep="\t", row.names = F, quote = F, col.names = F)
+write.table(paste(tassel_list[1:38]), "../shell_scripts/tassel_gwas.sh", sep="\t", row.names = F, quote = F, col.names = F)
+
+
+```
+#Recode map and ped files to create raw genotype files for GWAS.
+```{r geno_recode}
+
+#load phenotype names
+pheno_list <- read_csv("../outputs/pheno_list.txt", 
+                       col_names = FALSE)
+pheno_list <- pheno_list$X1
+
+#set paths to files.
+input="/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/"
+output="/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/geno_raw/"
+
+#make raw file to caluclate the effective number of markers.
+geno_raw_list = list()
+for (i in pheno_list){
+  script=paste0("/project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file ",input,i,"_geno_filtered --out ",output,i,"_geno_filtered --recode A")
+  geno_raw_list[[i]] = script
+  }
+write.table(paste(geno_raw_list[1:38]), "../shell_scripts/geno_raw.sh", sep="\t", row.names = F, quote = F, col.names = F)
 
 
 ```
 #MLMM GWAS
 ```{r mlmm_gwas}
 
-for i in pheno_list{
+for (i in pheno_list){
   pheno = 
   geno =
   kinship =
@@ -156,9 +165,5 @@ for i in pheno_list{
   dev.off()
 }
   
-
-
-
-
 ```
 

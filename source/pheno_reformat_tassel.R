@@ -1,15 +1,26 @@
 #Script to reformat phenotype files into the format required by TASSEL.
+setwd("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas")
 
-load(tidyverse)
+library(tidyverse)
 
+#load phenotype names
+pheno_list <- read_csv("pheno_list.txt", 
+                       col_names = FALSE)
+pheno_list <- pheno_list$X1
 
-
-pheno <- read_csv("outputs/phenotypes4gwas/time_ripen_2017_phenotype.txt", 
-         col_names = FALSE)
+#load header
 pheno_header <- read_csv("pheno_header.txt")
 
-colnames(pheno)[1] <- "<Phenotype>"
 
-test <-rbind(pheno_header, pheno, stringAsfactors = T)
+for (i in pheno_list) {
+  pheno <- read_csv(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/phenotype_data/",i,"_phenotype.txt"), 
+         col_names = FALSE)
 
-write.table(test, "time.txt", sep="\t", row.names = F, quote = F)
+  colnames(pheno)[1] <- "<Phenotype>"
+
+  pheno_reformat <-rbind(pheno_header, pheno)
+
+  pheno_reformat <- pheno_reformat %>% add_row('<Phenotype>' = paste("Taxa",i, sep = "\t"), .before = 2)
+
+  write.table(pheno_reformat, file = paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/phenotype_data/tassel_format/",i,"_pheno_reformated.txt"), sep="\t", row.names = F, quote = F)
+}
