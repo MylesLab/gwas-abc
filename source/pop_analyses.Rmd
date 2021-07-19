@@ -10,13 +10,11 @@ knitr::opts_chunk$set(message = F, warning = F)
 
 library(viridis)
 library(tidyverse)
-library(wesanderson)
+library(patchwork)
+
 ```
 
-#Principal components analysis.
-
-```{r pca}
-
+```{r tassel_pca}
 #remove unanchored SNPs
 snps <- read_table2("data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001.frq")
 snps <- snps %>% filter(CHR == 0) %>% select(SNP)
@@ -36,21 +34,70 @@ write.table(snps, "outputs/contig_snps_remove.txt", sep = "\t", row.names = F, c
 
 #run pca with TASSEL script
 
+```
+
+#Principal components analysis.
+
+```{r pca}
+
 #load tassel pca output
-abc_pcs <- read_table2("data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs_pruned1.txt", 
+abc_pcs <- read_table2("../data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs_pruned1.txt", 
     skip = 2)
-pheno_data <- read_csv("outputs/geno_pheno_meta_data.csv")
+pheno_data <- read_csv("../outputs/geno_pheno_meta_data.csv")
 
 pcs_pheno <- left_join(abc_pcs, pheno_data, by = c("Taxa"="apple_id"))
 
+#Set sylvestris and hybrid accessions to NA (this will add to the 3 accessions that are already NA for species).
+pcs_pheno <- pcs_pheno %>% mutate(species = na_if(species, "hybrid"))
+pcs_pheno <- pcs_pheno %>% mutate(species = na_if(species, "sylvestris"))
+
+#Make NAs a value
+pcs_pheno <- pcs_pheno %>% mutate(species = replace_na(species, "NA"))
+
+#make species factors
+pcs_pheno$species <- as.factor(pcs_pheno$species)
+#reorder levels
+pcs_pheno$species <- factor(pcs_pheno$species, levels = c("domestica", "sieversii", "NA"))
+
+
+#Load eigen results.
+eigen <- read_delim("../data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs_pruned2.txt", 
+    "\t", escape_double = FALSE, trim_ws = TRUE)
+
+eigen <- eigen %>%  mutate(per_var = `proportion of total`*100)
+eigen <- eigen %>% filter(PC < 10) %>% mutate(PC = PC +1)
+
+#remove rows that are NA for harvest date
+harv_na <- pcs_pheno %>% filter(is.na(date_jul_17_harv)) %>% select(Taxa, PC1, PC2, date_jul_17_harv, species)
+
+harv <- pcs_pheno %>% filter(!is.na(date_jul_17_harv)) %>% select(Taxa, PC1, PC2, date_jul_17_harv, species)
+
+data <- rbind(harv_na, harv)
+
+pca_species <- ggplot(data, aes(x=PC1, y=PC2))+
+  geom_point(aes(shape=species, colour=date_jul_17_harv),size=3, stroke=0, alpha=0.8)+
+  theme_bw()+
+  coord_fixed()+
+  scale_color_viridis(name = "Harvest date (days)", option = "magma", direction = -1)+
+  scale_shape_discrete(name = "Species", labels = c("M. domestica", "M. sieversii"))+
+  labs(x=paste0("PC1 (5.5%)"), y=paste0("PC2 (3.1%)"))+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
+ggsave("../figures/pca_species.pdf", plot = pca_species)
+
+```
+
+#Correlate PCs with phenotypes.
+
+```{r pheno_pc_correlations}
+
+#remove sylvestris and hybrid (this will also remove 3 accessions that are NA for species)
 pcs_pheno <- pcs_pheno %>% mutate(bin_species = species)
 
+#Make species, use and world phenotype binary.
 pcs_pheno <- pcs_pheno %>%
   mutate(bin_species = case_when(
   species == "sieversii"  ~ 0,
-  species == "domestica"  ~ 1,
-  species == "hybrid"  ~ 2,
-  species == "sylvestris" ~3))
+  species == "domestica"  ~ 1))
 
 pcs_pheno <- pcs_pheno %>%
   mutate(bin_use = case_when(
@@ -65,100 +112,20 @@ pcs_pheno <- pcs_pheno %>%
   world == "old"  ~ 0,
   world == "new"  ~ 1))
 
+#Correlate PC1 with phenotypes
 
-pcs_pheno$bin_species <- as.factor(pcs_pheno$bin_species)
-pcs_pheno$bin_use <- as.factor(pcs_pheno$bin_use)
-pcs_pheno$bin_world <- as.factor(pcs_pheno$bin_world)
+pheno_cor_pc1 <- select(pcs_pheno,PC1, release_year:bin_world) %>% mutate_all(as.numeric)
 
-
-eigen <- read_delim("data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs_pruned2.txt", 
-    "\t", escape_double = FALSE, trim_ws = TRUE)
-
-eigen <- eigen %>%  mutate(per_var = `proportion of total`*100)
-
-
-pca_species <- ggplot(pcs_pheno, aes(x=PC1, y=PC2, color=bin_species))+
-  geom_point(size=3, stroke=0, alpha=0.8)+
-  theme_bw()+
-  coord_fixed()+
-  scale_color_manual(name = "Species",values=wes_palette(n=4, name="GrandBudapest1"), labels = c("M. sieversii", "M. domestica", "Hybrid", "M. sylvestris"))+
-  labs(x=paste0("PC1 (5.5%)"), y=paste0("PC2 (3.1%)"))+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", size = 0.2), plot.title = element_text(size = 9))
-ggsave("figures/pca_species.pdf", plot = pca_species)
-
-
-pca_use <- ggplot(pcs_pheno, aes(x=PC1, y=PC2, color=bin_use))+
-  geom_point(size=3, stroke=0, alpha=0.8)+
-  theme_bw()+
-  coord_fixed()+
-  scale_color_manual(name = "Use",values=wes_palette(n=5, name="Darjeeling1"), labels = c("Cider", "Dessert", "Crab", "Wild", "Rootstock"))+
-  labs(x=paste0("PC1 (5.5%)"), y=paste0("PC2 (3.1%)"))+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", size = 0.2), plot.title = element_text(size = 9))
-ggsave("figures/pca_use.pdf", plot = pca_species)
-
-pca_world <- ggplot(pcs_pheno, aes(x=PC1, y=PC2, color=bin_world))+
-  geom_point(size=3, stroke=0, alpha=0.8)+
-  theme_bw()+
-  coord_fixed()+
-  scale_color_manual(name = "World",values=wes_palette(n=2, name="GrandBudapest1"), labels = c("Old", "New"))+
-  labs(x=paste0("PC1 (5.5%)"), y=paste0("PC2 (3.1%)"))+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", size = 0.2), plot.title = element_text(size = 9))
-ggsave("figures/pca_world.pdf", plot = pca_species)
-
-pca_harvest <- ggplot(pcs_pheno, aes(x=PC1, y=PC2, color=date_jul_17_harv))+
-  geom_point(size=3, stroke=0, alpha=0.8)+
-  theme_bw()+
-  coord_fixed()+
-  scale_colour_viridis(name = "Harvest Date (Julian date)", option = "magma", direction = -1)+
-  labs(x=paste0("PC1 (5.5%)"), y=paste0("PC2 (3.1%)"))+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", size = 0.2), plot.title = element_text(size = 9))
-ggsave("figures/pca_harvest_date.pdf", plot = pca_harvest)
-
-pca_flower <- ggplot(pcs_pheno, aes(x=PC1, y=PC2, color=flowering_jul_16_harv))+
-  geom_point(size=3, stroke=0, alpha=0.8)+
-  theme_bw()+
-  coord_fixed()+
-  scale_colour_viridis(name = "Flowering time (Julian date)", option = "magma", direction = -1)+
-  labs(x=paste0("PC1 (5.5%)"), y=paste0("PC2 (3.1%)"))+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", size = 0.2), plot.title = element_text(size = 9))
-ggsave("figures/pca_flower.pdf", plot = pca_flower)
-
-pca_weight <- ggplot(pcs_pheno, aes(x=PC1, y=PC2, color=weight_avg_17_harv))+
-  geom_point(size=3, stroke=0, alpha=0.8)+
-  theme_bw()+
-  coord_fixed()+
-  scale_colour_viridis(name = "Weight (g)", option = "magma", direction = -1)+
-  labs(x=paste0("PC1 (5.5%)"), y=paste0("PC2 (3.1%)"))+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", size = 0.2), plot.title = element_text(size = 9))
-ggsave("figures/pca_weight.pdf", plot = pca_weight)
-
-cumulative_eigen <- eigen %>% filter(PC < 10) %>% mutate(PC = PC +1)
-
-cumulative_pcs <- ggplot(cumulative_eigen, aes(x = PC)) +
-  theme_bw()+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", size = 0.2), plot.title = element_text(size = 9))+
-  geom_line(aes(y = `cumulative proportion`), colour="#41ab5d") +
-  geom_point(aes(y = `cumulative proportion`), colour="#41ab5d") +
-  ylab(label="% variance explained") + 
-  xlab("PC")+
-  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10))
-ggsave("figures/cumulative_pcs.pdf", plot = cumulative_pcs)
-
-
-#load data
-
-pheno_cor <- select(pcs_pheno,PC2, acidity_16_stor:time_ripen_2017)
-
-pheno_cor <- as.matrix(pheno_cor)
+pheno_cor_pc1 <- as.matrix(pheno_cor_pc1)
 
 r2 = p = c()
-for (i in 2:ncol(pheno_cor)) {
-  year_correlation <- cor.test(pheno_cor[,"PC2"], pheno_cor[,i], method = "pearson")
+for (i in 2:ncol(pheno_cor_pc1)) {
+  year_correlation <- cor.test(pheno_cor_pc1[,1], pheno_cor_pc1[,i], method = "pearson")
   r2[i] = year_correlation$estimate^2
   p[i] = year_correlation$p.val
 }
-cor_p = p * 39 #43 comparisons to multiple test correct for.
-pc1_vs_phenos = cbind(colnames(pheno_cor), r2, cor_p)
+cor_p = p * 43 #43 comparisons to multiple test correct for.
+pc1_vs_phenos = cbind(colnames(pheno_cor_pc1), r2, cor_p)
 pc1_vs_phenos = pc1_vs_phenos[-1,]
 pc1_vs_phenos <- as.data.frame(pc1_vs_phenos)
 pc1_vs_phenos$cor_p <- as.numeric(as.character(pc1_vs_phenos$cor_p))
@@ -166,17 +133,106 @@ pc1_vs_phenos$r2 <- as.numeric(as.character(pc1_vs_phenos$r2))
 pc1_vs_phenos$r2 <- signif(pc1_vs_phenos$r2, 3)
 pc1_vs_phenos <- pc1_vs_phenos %>% arrange(desc(r2))
 
+pc1_vs_phenos <- pc1_vs_phenos %>% rename(trait = V1)
+
+write.csv(pc1_vs_phenos,file = "../outputs/pc1_vs_phenos.csv", quote = F, row.names = F)
+
+#Correlate PC2 with phenotypes
+
+pheno_cor_pc2 <- select(pcs_pheno,PC2, release_year:bin_world) %>% mutate_all(as.numeric)
+
+pheno_cor_pc2 <- as.matrix(pheno_cor_pc2)
+
+r2 = p = c()
+for (i in 2:ncol(pheno_cor_pc2)) {
+  year_correlation <- cor.test(pheno_cor_pc2[,1], pheno_cor_pc2[,i], method = "pearson")
+  r2[i] = year_correlation$estimate^2
+  p[i] = year_correlation$p.val
+}
+cor_p = p * 43 #43 comparisons to multiple test correct for.
+pc2_vs_phenos = cbind(colnames(pheno_cor_pc2), r2, cor_p)
+pc2_vs_phenos = pc2_vs_phenos[-1,]
+pc2_vs_phenos <- as.data.frame(pc2_vs_phenos)
+pc2_vs_phenos$cor_p <- as.numeric(as.character(pc2_vs_phenos$cor_p))
+pc2_vs_phenos$r2 <- as.numeric(as.character(pc2_vs_phenos$r2))
+pc2_vs_phenos$r2 <- signif(pc2_vs_phenos$r2, 3)
+pc2_vs_phenos <- pc2_vs_phenos %>% arrange(desc(r2))
+
+write.csv(pc2_vs_phenos,file = "../outputs/pc2_vs_phenos.csv", quote = F, row.names = F)
+
+
+```
+
+#Correlation plot of harvest date with PC2.
+
+```{r}
+
+harvest_date_pc2 <- ggplot(data, aes(x=date_jul_17_harv, y=PC2))+
+  geom_point(aes(colour=date_jul_17_harv),size=1, alpha=0.8)+
+  theme_bw()+
+  coord_fixed()+
+  scale_color_viridis(option = "magma", direction = -1)+
+  labs(x="Harvest date (days)", y="PC 2")+
+  theme(legend.position = "none", panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))+
+  stat_smooth(method="lm", col="black", se = FALSE)+
+  ggtitle(paste("r2 = ", signif(cor.test(pcs_pheno$date_jul_17_harv, pcs_pheno$PC2, method = "pearson")$estimate^2, digits = 3), " p-value = ", signif(cor.test(pcs_pheno$date_jul_17_harv, pcs_pheno$PC2, method = "pearson")$p.value, digits = 2))) 
+ggsave("../figures/harvest_date_pc2.pdf", plot = harvest_date_pc2)
+
+```
+
+#Make boxplot of PC1 across domestica and sieversii.
+
+```{r}
+
+#Filter to only include sieversii and domestica
+species_compare <- pcs_pheno %>% filter(species == "sieversii" | species == "domestica") %>% select(PC1, species)
+
+species_compare$species <- as.factor(species_compare$species)
+
+domestica <- species_compare %>% filter(species == "domestica")
+
+sieversii <- species_compare %>% filter(species == "sieversii")
+
+species_pc1_boxplot <- ggplot(species_compare, aes(x=species, y=PC1)) + 
+  geom_boxplot()+
+  theme_bw()+
+  labs(x="Species", y="PC 1")+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))+
+  ggtitle(paste0("W= ",wilcox.test(domestica$PC1, sieversii$PC1, alternative = "two.sided")$statistic," p-value= ",wilcox.test(domestica$PC1, sieversii$PC1, alternative = "two.sided")$p.value))
+
+ggsave("../figures/species_pc1_boxplot.pdf", plot = species_pc1_boxplot)
+
+
+#Make full figure.
+
+figure_1 <- pca_species/(species_pc1_boxplot | harvest_date_pc2) + plot_annotation(tag_levels = 'A')
+
+ggsave("../figures/figure_1.pdf", plot = figure_1, width = 10, height = 10)
 
 ```
 
 #LD decay curve.
 
-```{r}
+```{r LD decay}
 
 /project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs --out abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs_ld --r2 --ld-window-kb 1000 --ld-window-r2 0
 
 #calculate background LD
 /project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs --out abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs_back_ld --r2 inter-chr --thin 0.01 --ld-window-r2 0
+
+
+phenolics <- ggplot(abc_pcs, aes(x=date_jul_17_harv, y=PC2))+
+  geom_point(aes(colour=date_jul_17_harv),size=1, alpha=0.8)+
+  theme_bw()+
+  coord_fixed()+
+  scale_color_viridis(option = "magma", direction = -1)+
+  labs(x="Harvest date (days)", y="PC 2")+
+  theme(legend.position = "none", panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))+
+  stat_smooth(method="lm", col="black", se = FALSE)+
+  ggtitle(paste("r2 = ", signif(cor.test(pcs_pheno$date_jul_17_harv, pcs_pheno$PC2, method = "pearson")$estimate^2, digits = 3), " p-value = ", signif(cor.test(pcs_pheno$date_jul_17_harv, pcs_pheno$PC2, method = "pearson")$p.value, digits = 2))) 
+ggsave("../figures/harvest_date_pc2.pdf", plot = harvest_date_pc2)
+
+
 
 ```
 
