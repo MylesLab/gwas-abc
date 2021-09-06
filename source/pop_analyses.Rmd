@@ -220,19 +220,5 @@ ggsave("../figures/figure_1.pdf", plot = figure_1, width = 10, height = 10)
 #calculate background LD
 /project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs --out abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs_back_ld --r2 inter-chr --thin 0.01 --ld-window-r2 0
 
-
-phenolics <- ggplot(abc_pcs, aes(x=date_jul_17_harv, y=PC2))+
-  geom_point(aes(colour=date_jul_17_harv),size=1, alpha=0.8)+
-  theme_bw()+
-  coord_fixed()+
-  scale_color_viridis(option = "magma", direction = -1)+
-  labs(x="Harvest date (days)", y="PC 2")+
-  theme(legend.position = "none", panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))+
-  stat_smooth(method="lm", col="black", se = FALSE)+
-  ggtitle(paste("r2 = ", signif(cor.test(pcs_pheno$date_jul_17_harv, pcs_pheno$PC2, method = "pearson")$estimate^2, digits = 3), " p-value = ", signif(cor.test(pcs_pheno$date_jul_17_harv, pcs_pheno$PC2, method = "pearson")$p.value, digits = 2))) 
-ggsave("../figures/harvest_date_pc2.pdf", plot = harvest_date_pc2)
-
-
-
 ```
 

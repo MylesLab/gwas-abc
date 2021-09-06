@@ -143,27 +143,5 @@ write.table(paste(geno_raw_list[1:38]), "../shell_scripts/geno_raw.sh", sep="\t"
 
 
 ```
-#MLMM GWAS
-```{r mlmm_gwas}
 
-for (i in pheno_list){
-  pheno = 
-  geno =
-  kinship =
-  pcs =
-  gwas_output <- mlmm_cof(Y=pheno, X=geno, cofs= pcs, K=kinship,
-                      nbchunks=10, maxsteps=10)
-  pdf(file = "harv_date_mlmm_manhat.pdf")
-  plot_opt_GWAS(gwas_output, 'extBIC', map, 1, main="Harvest Date (optimal MLMM)", abline(h=(-log10(0.05/255664)), col="black", lty=2))
-  dev.off()
-  
-  mlmm_pvals <- gwas_output[["opt_extBIC"]][["out"]]
-  write.table(mlmm_pvals, file = "harv_date_mlmm_pvals.csv", quote = F, sep = ",", row.names = F)
-  
-  pdf(file = "harv_date_mlmm_qq.pdf")
-  qqplot <- qq(mlmm_pvals[,2], main = "Harvest Date QQ plot (optimal MLMM)")
-  dev.off()
-}
-  
-```
 

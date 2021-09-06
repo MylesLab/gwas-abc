@@ -14,12 +14,18 @@ pheno_list <- read_csv("pheno_list.txt",
                        col_names = FALSE)
 pheno_list <- pheno_list$X1
 
+print(paste0("pheno_list cols=",ncol(pheno_list)))
+print(paste0("pheno_list rows=",nrow(pheno_list)))
+
 #load full pheno names
 full_pheno_names <- read_delim("full_pheno_names.txt", 
                                "\t", escape_double = FALSE, trim_ws = TRUE)
 short <- full_pheno_names$name
 long <- full_pheno_names$full_name
 names(long) <- short
+
+print(paste0("full_pheno_names cols=",ncol(full_pheno_names)))
+print(paste0("full_pheno_names rows=",nrow(full_pheno_names)))
 
 ###################################################################################################
 
@@ -31,11 +37,17 @@ for (i in pheno_list) {
                            trim_ws = TRUE)
   pheno <- pheno_data$X2
   names(pheno) <- pheno_data$X1
-
+  
+  print(paste0("pheno_data cols=",ncol(pheno_data)))
+  print(paste0("pheno_data rows=",nrow(pheno_data)))
+  
   #load genetic data
   geno_dat <- read.table(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/geno_raw/",i,"_geno_filtered.raw"), header=T)
   rownames(geno_dat) <- geno_dat[,1]
   geno_dat <- geno_dat[,7:ncol(geno_dat)]
+  
+  print(paste0("geno_dat cols=",ncol(geno_dat)))
+  print(paste0("geno_dat rows=",nrow(geno_dat)))
   
   #save SNP names from raw file to be able to rename the map file with the same names.
   snp_names <- colnames(geno_dat)
@@ -45,6 +57,9 @@ for (i in pheno_list) {
     rename(new_snp = snp_names) %>%
     mutate_all(~as.character(.)) %>%
     mutate(trimmed = str_sub(new_snp, start = 2, end= -3))
+  
+  print(paste0("snp_names cols=",ncol(snp_names)))
+  print(paste0("snp_names rows=",nrow(snp_names)))
   
   #make it a matrix
   geno_dat <- as.matrix(geno_dat)
@@ -61,6 +76,9 @@ for (i in pheno_list) {
   colnames(kinship) <- rownames(kinship)
   kinship <- as.matrix(kinship)
   
+  print(paste0("kinship cols=",ncol(kinship)))
+  print(paste0("kinship rows=",nrow(kinship)))
+  
   #load PCs
   pcs <- read_delim(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/pca/",i,"_pca_1.txt"), 
                     "\t", escape_double = FALSE, trim_ws = TRUE, 
@@ -70,6 +88,9 @@ for (i in pheno_list) {
   pcs <- pcs[,2:ncol(pcs)]
   colnames(pcs)[c(1:5)] <- c(1:5)
   pcs <- as.matrix(pcs)
+  
+  print(paste0("pcs cols=",ncol(pcs)))
+  print(paste0("pcs rows=",nrow(pcs)))
   
   #map file
   map <- read_delim(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/",i,"_geno_filtered.map"), 
@@ -90,6 +111,9 @@ for (i in pheno_list) {
     select(SNP, Chr, Pos)
   
   map <- as.data.frame(map)
+  
+  print(paste0("map rows=",nrow(map)))
+  print(paste0("map cols=",ncol(map)))
   
   #run gwas
   gwas_output <- mlmm_cof(Y=pheno, X=geno_dat, cofs=pcs, K=kinship,
