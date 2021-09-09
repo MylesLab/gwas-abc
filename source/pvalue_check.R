@@ -1,20 +1,20 @@
 #load packages
 library(tidyverse)
 
-#The TASSEL manhattan plots for certain phenotypes  appear to have weird artifacts and unusually high p-values. We look into why this might be in this script by analyzing the MAF, HWE and p-values
+#The TASSEL manhattan plots for certain phenotypes  appear to have weird artifacts and unusually high p-values. We look into why this might be in this script by analyzing the MAF, HWE and p-values.
 
 #Plot histograms of tassel pvalues
 #Correlate MAF with tassel pvalues
 #Correlate HWE pvalues with tassel pvalues
-#First take the p-values for a SNP and correlate with MAF.
 
 #load list of phenos
 pheno_list <- read_csv("pheno_list.txt", 
                        col_names = FALSE)
 pheno_list <- pheno_list$X1
-r2 = p = c()
+
 for (i in pheno_list) {
-  #load tassel gwas p-values
+  
+  #load TASSEL gwas p-values
   trait_pvals <- read_delim(file = paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/tassel_gwas/",i,"_",i,"_geno_filtered_+_",i,"_pheno_reformated_+_",i,"_pca_1_stats.txt"), delim = "\t", escape_double = FALSE, trim_ws = TRUE)
   trait_pvals <- trait_pvals[-1, ]
   trait_pvals <- trait_pvals[, c(2,7)]
@@ -23,42 +23,52 @@ for (i in pheno_list) {
   trait_pvals <- trait_pvals %>% mutate(log_pval = -log10(p))
   trait_pvals <- trait_pvals %>% select(Marker, log_pval)
   
-  
-  #plot
-  jpeg(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/maf/plots/hist_",i,".jpeg"), width = 11, height = 5)
-  hist(trait_pvals$log_pval, breaks=100000, main = "acidity")
+  #plot histogram of TASSEL p-values
+  jpeg(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/tassle_p_hist_",i,".jpeg"), width = 11, height = 5)
+  hist(trait_pvals$log_pval, breaks=100000, xlab = "TASSEL -log10(p)", ylab = "Count")
   dev.off()
   
   #load maf
-  maf_table <- read_delim(file = paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/maf/",i,"_",i,"_geno_filtered.frq"), delim = "\t", escape_double = FALSE, trim_ws = TRUE)
+  maf_table <- read_table2(file = paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/maf/",i,"_geno_filtered.frq"))
   maf_table <- maf_table[, c(2,5)]
+  
+  #plot histogram of MAF values
+  jpeg(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/maf_hist_",i,".jpeg"), width = 11, height = 5)
+  hist(maf_table$MAF, breaks=100000, xlab = "MAF", ylab = "Count")
+  dev.off()
   
   #join maf and pvals together
   table <- left_join(maf_table, trait_pvals, by = c("SNP"="Marker"))
   
   #plot
-  pheno_maf_cor <- ggplot(table, aes(x=MAF, y=log_pval))+
-    geom_point(size=3, stroke=0, alpha=0.8)+
+  maf_cor <- ggplot(table, aes(x=MAF, y=log_pval))+
+    geom_point(size=1, stroke=0, alpha=0.8)+
     theme_bw()+
-    labs(x="MAF", y="p-value")+
+    labs(x="MAF", y="TASSEL -log10(p)")+
     theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))+
-    stat_smooth(method="lm", col="black", se = FALSE)+
     ggtitle(paste("r2 = ", signif(cor.test(table$MAF, table$log_pval, method = "pearson")$estimate^2, digits = 3), " p-value = ", signif(cor.test(table$MAF, table$log_pval, method = "pearson")$p.value, digits = 2)))
-  ggsave(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/maf/plots/",i,".jpeg"), plot = pheno_maf_cor)
+  ggsave(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/maf/plots/maf_cor_",i,".jpeg"), plot = maf_cor)
   
-  #extract the p-values and r2 of the correlation between MAF and p-values
-  correlation <- cor.test(table$MAF, table$log_pval, method = "pearson")
-  r2[i] = signif(correlation$estimate^2)
-  p[i] = signif(correlation$p.val)
+  #load HWE data.
+  hardy_dat <- read_table2(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/hardy",i,"_geno_filtered.hwe"))
+  hardy_dat <- hardy_dat %>% mutate(hwe_log_p = -log10(P)) %>% select(SNP, hwe_log_p) 
+
+  jpeg(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/hardy_hist_",i,".jpeg"), width = 11, height = 5)
+  hist(hardy_dat$hwe_log_p, breaks=100, xlab = "HWE -log10(p)", ylab = "Count")
+  dev.off()
+  
+  #join HWE table with the big table.
+  table <- left_join(table, hardy_dat, by = "SNP")
+    
+  #plot
+  hardy_cor <- ggplot(table, aes(x=hwe_log_p, y=log_pval))+
+  geom_point(size=1, stroke=0, alpha=0.8)+
+  theme_bw()+
+  labs(x="HWE p-value", y="TASSEL p-value")+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))+
+  ggtitle(paste("r2 = ", signif(cor.test(table$hwe_log_p, table$log_pval, method = "pearson")$estimate^2, digits = 3), " p-value = ", signif(cor.test(table$hwe_log_p, table$log_pval, method = "pearson")$p.value, digits = 2)))
+ggsave(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/maf/plots/hardy_cor_",i,".jpeg"), plot = hardy_cor)
+  
 }
 
-cor_table = cbind(pheno_list, r2, p)
-cor_table <- as.data.frame(cor_table)
-cor_table$p <- as.numeric(as.character(cor_table$p))
-cor_table$r2 <- as.numeric(as.character(cor_table$r2))
-cor_table <- cor_table %>% arrange(desc(r2))
-
-write.csv(cor_table,file = paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/maf/plots/cor_table.csv", quote = F, row.names = F))
-          
-          
-#plot distributions of 
+      
