@@ -11,6 +11,16 @@ knitr::opts_chunk$set(message = F, warning = F)
 library(tidyverse)
 library(snpStats)
 library(patchwork)
+
+
+
+```
+#Load phenotype data.
+```{r}
+
+#load phenotype data
+pheno_data <- read_csv("../data/pheno_meta_data.csv")
+
 ```
 
 #Filter phenotype file.
