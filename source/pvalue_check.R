@@ -1,7 +1,7 @@
 #load packages
 library(tidyverse)
 
-#The TASSEL manhattan plots for certain phenotypes  appear to have weird artifacts and unusually high p-values. We look into why this might be in this script by analyzing the MAF, HWE and p-values.
+#The TASSEL manhattan plots for certain phenotypes appear to have weird artifacts and unusually high p-values. We look into why this might be in this script by analyzing the MAF, HWE and p-values.
 
 #Plot histograms of tassel pvalues
 #Correlate MAF with tassel pvalues
@@ -24,7 +24,7 @@ for (i in pheno_list) {
   trait_pvals <- trait_pvals %>% select(Marker, log_pval)
   
   #plot histogram of TASSEL p-values
-  jpeg(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/tassle_p_hist_",i,".jpeg"), width = 11, height = 5)
+  jpeg(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/tassle_p_hist_",i,".jpeg"), width = 5, height = 5)
   hist(trait_pvals$log_pval, breaks=100000, xlab = "TASSEL -log10(p)", ylab = "Count")
   dev.off()
   
@@ -33,13 +33,13 @@ for (i in pheno_list) {
   maf_table <- maf_table[, c(2,5)]
   
   #plot histogram of MAF values
-  jpeg(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/maf_hist_",i,".jpeg"), width = 11, height = 5)
+  jpeg(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/maf_hist_",i,".jpeg"), width = 5, height = 5)
   hist(maf_table$MAF, breaks=100000, xlab = "MAF", ylab = "Count")
   dev.off()
   
   #join maf and pvals together
   table <- left_join(maf_table, trait_pvals, by = c("SNP"="Marker"))
-  
+
   #plot
   maf_cor <- ggplot(table, aes(x=MAF, y=log_pval))+
     geom_point(size=1, stroke=0, alpha=0.8)+
@@ -53,7 +53,7 @@ for (i in pheno_list) {
   hardy_dat <- read_table2(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/hardy",i,"_geno_filtered.hwe"))
   hardy_dat <- hardy_dat %>% mutate(hwe_log_p = -log10(P)) %>% select(SNP, hwe_log_p) 
 
-  jpeg(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/hardy_hist_",i,".jpeg"), width = 11, height = 5)
+  jpeg(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/hardy_hist_",i,".jpeg"), width = 5, height = 5)
   hist(hardy_dat$hwe_log_p, breaks=100, xlab = "HWE -log10(p)", ylab = "Count")
   dev.off()
   
@@ -70,5 +70,10 @@ for (i in pheno_list) {
 ggsave(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/maf/plots/hardy_cor_",i,".jpeg"), plot = hardy_cor)
   
 }
+
+#I want to bin the p-values from the TASSEL GWAS and for each bin I want to calculate the median MAF of the SNPs at that level.
+
+
+
 
       
