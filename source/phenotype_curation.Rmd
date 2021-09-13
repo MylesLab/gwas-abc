@@ -9,10 +9,6 @@ output: html_document
 knitr::opts_chunk$set(message = F, warning = F)
 
 library(tidyverse)
-library(snpStats)
-library(patchwork)
-
-
 
 ```
 #Load phenotype data.

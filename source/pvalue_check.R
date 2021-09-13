@@ -24,7 +24,7 @@ for (i in pheno_list) {
   trait_pvals <- trait_pvals %>% select(Marker, log_pval)
   
   #plot histogram of TASSEL p-values
-  jpeg(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/tassle_p_hist_",i,".jpeg"), width = 5, height = 5)
+  jpeg(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/pval_hists/tassle_p_hist_",i,".jpeg"), width = 450, height = 500)
   hist(trait_pvals$log_pval, breaks=100000, xlab = "TASSEL -log10(p)", ylab = "Count")
   dev.off()
   
@@ -33,7 +33,7 @@ for (i in pheno_list) {
   maf_table <- maf_table[, c(2,5)]
   
   #plot histogram of MAF values
-  jpeg(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/maf_hist_",i,".jpeg"), width = 5, height = 5)
+  jpeg(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/maf_hists/maf_hist_",i,".jpeg"), width = 450, height = 500)
   hist(maf_table$MAF, breaks=100000, xlab = "MAF", ylab = "Count")
   dev.off()
   
@@ -47,13 +47,13 @@ for (i in pheno_list) {
     labs(x="MAF", y="TASSEL -log10(p)")+
     theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))+
     ggtitle(paste("r2 = ", signif(cor.test(table$MAF, table$log_pval, method = "pearson")$estimate^2, digits = 3), " p-value = ", signif(cor.test(table$MAF, table$log_pval, method = "pearson")$p.value, digits = 2)))
-  ggsave(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/maf/plots/maf_cor_",i,".jpeg"), plot = maf_cor)
+  ggsave(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/maf_p_cor/maf_cor_",i,".jpeg"), plot = maf_cor)
   
   #load HWE data.
-  hardy_dat <- read_table2(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/hardy",i,"_geno_filtered.hwe"))
+  hardy_dat <- read_table2(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/hardy/",i,"_geno_filtered.hwe"))
   hardy_dat <- hardy_dat %>% mutate(hwe_log_p = -log10(P)) %>% select(SNP, hwe_log_p) 
 
-  jpeg(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/hardy_hist_",i,".jpeg"), width = 5, height = 5)
+  jpeg(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/hardy_hists/hardy_hist_",i,".jpeg"), width = 450, height = 500)
   hist(hardy_dat$hwe_log_p, breaks=100, xlab = "HWE -log10(p)", ylab = "Count")
   dev.off()
   
@@ -67,7 +67,7 @@ for (i in pheno_list) {
   labs(x="HWE p-value", y="TASSEL p-value")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))+
   ggtitle(paste("r2 = ", signif(cor.test(table$hwe_log_p, table$log_pval, method = "pearson")$estimate^2, digits = 3), " p-value = ", signif(cor.test(table$hwe_log_p, table$log_pval, method = "pearson")$p.value, digits = 2)))
-ggsave(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/maf/plots/hardy_cor_",i,".jpeg"), plot = hardy_cor)
+ggsave(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/plots/hardy_p_cor/hardy_cor_",i,".jpeg"), plot = hardy_cor)
   
 }
 
