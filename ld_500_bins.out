@@ -13,32 +13,21 @@ In system("timedatectl", intern = TRUE) :
 
 ── Column specification ────────────────────────────────────────────────────────
 cols(
-  X1 = col_character()
+  CHR_A = col_double(),
+  BP_A = col_double(),
+  SNP_A = col_character(),
+  CHR_B = col_double(),
+  BP_B = col_double(),
+  SNP_B = col_character(),
+  R2 = col_double(),
+  X8 = col_logical()
 )
 
-
-── Column specification ────────────────────────────────────────────────────────
-cols(
-  Trait = col_character(),
-  Marker = col_character(),
-  Chr = col_double(),
-  Pos = col_double(),
-  df = col_double(),
-  F = col_double(),
-  p = col_double(),
-  add_effect = col_double(),
-  add_F = col_double(),
-  add_p = col_double(),
-  dom_effect = col_double(),
-  dom_F = col_double(),
-  dom_p = col_double(),
-  errordf = col_double(),
-  MarkerR2 = col_double(),
-  `Genetic Var` = col_double(),
-  `Residual Var` = col_double(),
-  `-2LnLikelihood` = col_double()
-)
-
-Error in plot.new() : figure margins too large
-Calls: hist -> hist.default -> plot -> plot.histogram -> plot.new
-Execution halted
+Warning message:
+Missing column names filled in: 'X8' [8] 
+`geom_smooth()` using formula 'y ~ x'
+Warning messages:
+1: Duplicated aesthetics after name standardisation: colour 
+2: Removed 1125 rows containing non-finite values (stat_smooth). 
+null device 
+          1 

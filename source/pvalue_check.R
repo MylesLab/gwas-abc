@@ -71,8 +71,6 @@ ggsave(paste0("/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genoty
   
 }
 
-#I want to bin the p-values from the TASSEL GWAS and for each bin I want to calculate the median MAF of the SNPs at that level.
-
 
 
 
