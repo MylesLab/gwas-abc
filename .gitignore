@@ -3,3 +3,6 @@
 .RData
 .Ruserdata
 .DS_Store
+data/acidity_16_harv_acidity_16_harv_geno_filtered_+_acidity_16_harv_pheno_reformated_+_acidity_16_harv_pca_1_stats.txt
+data/tpc_tpc_geno_filtered_+_tpc_pheno_reformated_+_tpc_pca_1_stats.txt
+data/original_tpc_tpc_geno_filtered_+_tpc_pheno_reformated_+_tpc_pca_1_stats.txt
