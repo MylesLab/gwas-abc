@@ -99,7 +99,6 @@ write.table(paste(pca_list[1:38]), "../shell_scripts/pca.sh", sep="\t", row.name
 ```
 #Run loop to generate script for GWAS with TASSEL.
 ```{r tassel_gwas}
-
 #load phenotype names
 pheno_list <- read_csv("../outputs/pheno_list.txt", 
                        col_names = FALSE)
@@ -119,9 +118,36 @@ for (i in pheno_list){
 }
 write.table(paste(tassel_list[1:38]), "../shell_scripts/tassel_gwas.sh", sep="\t", row.names = F, quote = F, col.names = F)
 
+```
+
+#Run loop to generate script for GWAS with TASSEL with slight alteration to the code.
+
+After reviewing the manhattan plots from the TASSEL GWAS, there were weird artifacts on some plots (mainly phenotypes with low sample sizes) were multiple SNPs had identical p-values. After looking at the MAF and HWE of SNPs and their TASSEL p-values we did not determine anything obvious with filtering that could have led to these artifacts. We hypothesize that the artifacts are due to TASSEL's compression step. We had run it first with optimum compression. We now will do an alternate GWAS run in TASSEL using no compression.
+
+```{r tassel_gwas_alt}
+
+#load phenotype names
+pheno_list <- read_csv("../outputs/pheno_list.txt", 
+                       col_names = FALSE)
+pheno_list <- pheno_list$X1
+
+#set paths to files.
+kinship="/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/kinship/"
+pcs="/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/pca/"
+geno="/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/"
+pheno="/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/phenotype_data/tassel_format/"
+output="/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/alt_tassel_gwas/"
+
+tassel_list = list()
+for (i in pheno_list){
+  script=paste0("/project/6003429/myles_lab/bin/tassel5/tasseladmin-tassel-5-standalone-68140c7ab0dc/run_pipeline.pl -fork1 -plink -ped ",geno,i,"_geno_filtered.ped -map ",geno,i,"_geno_filtered.map -fork2 -r ",pheno,i,"_pheno_reformated.txt —fork3 -importGuess ",pcs,i,"_pca_1.txt -combine4 -input1 -input2 -input3 -intersect -fork5 -importGuess ",kinship,i,"_kinship.txt -combine6 -input4 -input5 -mlm -mlmVarCompEst P3D -mlmCompressionLevel Optimum —mlmOutputFile ",output,i)
+  tassel_list[[i]] = script
+}
+write.table(paste(tassel_list[1:38]), "../shell_scripts/alt_tassel_gwas.sh", sep="\t", row.names = F, quote = F, col.names = F)
+
 
 ```
-#Recode map and ped files to create raw genotype files for GWAS.
+#Recode map and ped files to create raw genotype files for MLMM GWAS.
 ```{r geno_recode}
 
 #load phenotype names
