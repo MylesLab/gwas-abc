@@ -1,0 +1,22 @@
+name	full_name
+juiciness_16_harv	Juiciness at harvest (2016)
+flowering_jul_16_harv	Flowering date (2016)
+precocity_16_harv	Precocity
+acidity_17_stor	Acidity after storage (2017)
+brix_17_stor	SSC after storage (2017)
+weight_avg_17_stor	Weight after storage (2017)
+firmness_avg_17_stor	Firmness after storage (2017)
+brix_acid_17_stor	SSC/acidity after storage (2017)
+brix_17_harv	SSC at harvest (2017)
+acidity_17_harv	Acidity at harvest (2017)
+date_jul_17_harv	Harvest date (2017)
+firmness_avg_17_harv	Firmness at harvest (2017)
+weight_avg_17_harv	Weight at harvest (2017)
+brix_acid_17_harv	SSC/acidity at harvest (2017)
+percent_acidity_17	Change in acidity during storage (2017)
+percent_brix_17	Change in SSC during storage (2017)
+percent_weight_avg_17	Change in weight during storage (2017)
+percent_firmness_avg_17	Change in firmness during storage (2017)
+percent_brix_acid_17	Change in SSC/acidity during storage (2017)
+tpc	Phenolics
+time_ripen_2017	Time to ripen (2017)

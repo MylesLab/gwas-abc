@@ -1,4 +1,4 @@
-#look at kendra's phenolic data.
+#look at kendra's phenolic data to see if the overlapping apple accessions from her study and the ABC GWAS study that were easured for phenolic content have similar levels of phenolics. We used a different assay to measure phenolics so we would like to see if they are correlated and therefore if we would expect to see the same GWAS hit for phenolics.
 
 library(readxl)
 library(tidyverse)

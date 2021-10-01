@@ -1,0 +1,147 @@
+Failed to query server: Operation not permitted
+── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──
+✔ ggplot2 3.3.4     ✔ purrr   0.3.4
+✔ tibble  3.1.2     ✔ dplyr   1.0.6
+✔ tidyr   1.1.3     ✔ stringr 1.4.0
+✔ readr   1.4.0     ✔ forcats 0.5.1
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+Warning message:
+In system("timedatectl", intern = TRUE) :
+  running command 'timedatectl' had status 1
+package 'mlmm' (version 0.1.1) is loaded
+dev at https://github.com/Gregor-Mendel-Institute/mlmm
+
+For example usage please run: vignette('qqman')
+
+Citation appreciated but not required:
+Turner, (2018). qqman: an R package for visualizing GWAS results using Q-Q and manhattan plots. Journal of Open Source Software, 3(25), 731, https://doi.org/10.21105/joss.00731.
+
+
+Attaching package: ‘scales’
+
+The following object is masked from ‘package:purrr’:
+
+    discard
+
+The following object is masked from ‘package:readr’:
+
+    col_factor
+
+
+── Column specification ────────────────────────────────────────────────────────
+cols(
+  X1 = col_character()
+)
+
+[1] "pheno_list cols="
+[1] "pheno_list rows="
+
+── Column specification ────────────────────────────────────────────────────────
+cols(
+  name = col_character(),
+  full_name = col_character()
+)
+
+[1] "full_pheno_names cols=2"
+[1] "full_pheno_names rows=1"
+
+── Column specification ────────────────────────────────────────────────────────
+cols(
+  X1 = col_double(),
+  X2 = col_double()
+)
+
+[1] "pheno_data cols=2"
+[1] "pheno_data rows=317"
+[1] "geno_dat cols=238633"
+[1] "geno_dat rows=317"
+[1] "snp_names cols=2"
+[1] "snp_names rows=238633"
+acidity_16_stor  number of SNPs:  238633 
+acidity_16_stor  number of apple IDs:  317 
+
+── Column specification ────────────────────────────────────────────────────────
+cols(
+  .default = col_double()
+)
+ℹ Use `spec()` for the full column specifications.
+
+[1] "kinship cols=317"
+[1] "kinship rows=317"
+
+── Column specification ────────────────────────────────────────────────────────
+cols(
+  Taxa = col_double(),
+  PC1 = col_double(),
+  PC2 = col_double(),
+  PC3 = col_double(),
+  PC4 = col_double(),
+  PC5 = col_double()
+)
+
+[1] "pcs cols=5"
+[1] "pcs rows=317"
+
+── Column specification ────────────────────────────────────────────────────────
+cols(
+  X1 = col_double(),
+  X2 = col_character(),
+  X3 = col_double(),
+  X4 = col_double()
+)
+
+[1] "map rows=238633"
+[1] "map cols=3"
+null model done! pseudo-h= 0 
+step 1 done! pseudo-h= 0 
+[1] "geno_dat cols=238633"
+[1] "geno_dat rows=317"
+[1] "snp_names cols=2"
+[1] "snp_names rows=238633"
+acidity_16_stor  number of SNPs:  238633 
+acidity_16_stor  number of apple IDs:  317 
+
+── Column specification ────────────────────────────────────────────────────────
+cols(
+  .default = col_double()
+)
+ℹ Use `spec()` for the full column specifications.
+
+[1] "kinship cols=317"
+[1] "kinship rows=317"
+
+── Column specification ────────────────────────────────────────────────────────
+cols(
+  Taxa = col_double(),
+  PC1 = col_double(),
+  PC2 = col_double(),
+  PC3 = col_double(),
+  PC4 = col_double(),
+  PC5 = col_double()
+)
+
+[1] "pcs cols=5"
+[1] "pcs rows=317"
+
+── Column specification ────────────────────────────────────────────────────────
+cols(
+  X1 = col_double(),
+  X2 = col_character(),
+  X3 = col_double(),
+  X4 = col_double()
+)
+
+[1] "map rows=238633"
+[1] "map cols=3"
+null model done! pseudo-h= 0 
+backward analysis 
+creating output 
+step 1 done! pseudo-h= 0 
+Error in GLS_lm$coef[(ncol(fix_cofs) + 1):(ncol(fix_cofs) + ncol(cof)),  : 
+  subscript out of bounds
+Calls: mlmm_cof -> bestmodel_pvals -> rbind -> data.frame
+Execution halted
+backward analysis 
+creating output 

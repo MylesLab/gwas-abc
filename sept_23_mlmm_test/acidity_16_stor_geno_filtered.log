@@ -1,0 +1,43 @@
+PLINK v1.90b5.3 64-bit (21 Feb 2018)
+Options in effect:
+  --file /project/6003429/myles_lab/abc_gwas/genotype_filtering/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001
+  --keep /project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/pheno_indvs/acidity_16_stor_indvs.txt
+  --maf 0.01
+  --out /project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/acidity_16_stor_geno_filtered
+  --recode
+
+Hostname: cdr469.int.cedar.computecanada.ca
+Working directory: /project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas
+Start time: Mon Jun 28 14:29:16 2021
+
+Random number seed: 1624915756
+1548105 MB RAM detected; reserving 774052 MB for main workspace.
+Scanning .ped file... done.
+Performing single-pass .bed write (260399 variants, 1054 people).
+--file:
+/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/acidity_16_stor_geno_filtered-temporary.bed
++
+/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/acidity_16_stor_geno_filtered-temporary.bim
++
+/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/acidity_16_stor_geno_filtered-temporary.fam
+written.
+260399 variants loaded from .bim file.
+1054 people (0 males, 0 females, 1054 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to
+/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/acidity_16_stor_geno_filtered.nosex
+.
+--keep: 317 people remaining.
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 317 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+21766 variants removed due to minor allele threshold(s)
+(--maf/--max-maf/--mac/--max-mac).
+238633 variants and 317 people pass filters and QC.
+Note: No phenotypes present.
+--recode ped to
+/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/acidity_16_stor_geno_filtered.ped
++
+/project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/acidity_16_stor_geno_filtered.map
+... done.
+
+End time: Mon Jun 28 14:29:35 2021
