@@ -1,2 +1,0 @@
-name	full_name
-acidity_16_stor	Acidity

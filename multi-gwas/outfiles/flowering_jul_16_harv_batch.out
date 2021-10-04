@@ -43,5 +43,43 @@ cols(
   X2 = col_double()
 )
 
-/var/spool/slurmd/job15279678/slurm_script: line 11:  8183 Killed                  Rscript mlmm_gwas_batch_script.R $1
-slurmstepd: error: Detected 1 oom-kill event(s) in StepId=15279678.batch cgroup. Some of your processes may have been killed by the cgroup out-of-memory handler.
+
+── Column specification ────────────────────────────────────────────────────────
+cols(
+  Taxa = col_double(),
+  PC1 = col_double(),
+  PC2 = col_double(),
+  PC3 = col_double(),
+  PC4 = col_double(),
+  PC5 = col_double()
+)
+
+
+── Column specification ────────────────────────────────────────────────────────
+cols(
+  X1 = col_double(),
+  X2 = col_character(),
+  X3 = col_double(),
+  X4 = col_double()
+)
+
+null model done! pseudo-h= 0.853 
+step 1 done! pseudo-h= 0.829 
+step  2  done! pseudo-h= 0.82 
+step  3  done! pseudo-h= 0.816 
+step  4  done! pseudo-h= 0.799 
+step  5  done! pseudo-h= 0.771 
+step  6  done! pseudo-h= 0.767 
+step  7  done! pseudo-h= 0.746 
+step  8  done! pseudo-h= 0.721 
+step  9  done! pseudo-h= 0.733 
+backward analysis 
+creating output 
+null device 
+          1 
+null device 
+          1 
+null device 
+          1 
+null device 
+          1 

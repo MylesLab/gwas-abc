@@ -2,4 +2,6 @@ while read -r line; do sbatch --job-name=${line}_mlmm_gwas --output=${line}_batc
 
 #reran the following line with more memory for only flowering time and precocity:
 
-while read -r line; do sbatch --job-name=${line}_mlmm_gwas --output=${line}_batch.out run_mlmm_gwas_batch_script.sh $line ; done < flower_precocity.txt
+sbatch --job-name=precocity_16_harv_mlmm_gwas --output=precocity_16_harv_batch.out run_mlmm_gwas_batch_script.sh precocity_16_harv
+
+sbatch --job-name=flowering_jul_16_harv_mlmm_gwas --output=flowering_jul_16_harv_batch.out run_mlmm_gwas_batch_script.sh flowering_jul_16_harv
