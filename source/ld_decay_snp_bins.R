@@ -10,7 +10,7 @@ back_ld <- read_table("abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_
 back_ld <- subset(back_ld, (CHR_A != CHR_B))
 avg_back_ld <- mean(back_ld$R2, na.rm = T)
 
-ld_table = read_table("../ld_subset.ld")
+ld_table = read_table("ld_subset.ld")
 
 #get columns we want.
 ld_table <- ld_table %>% select(CHR_A:R2)

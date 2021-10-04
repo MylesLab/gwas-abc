@@ -1,0 +1,5 @@
+while read -r line; do sbatch --job-name=${line}_mlmm_gwas --output=${line}_batch.out run_mlmm_gwas_batch_script.sh $line ; done < pheno_list_2017.txt
+
+#reran the following line with more memory for only flowering time and precocity:
+
+while read -r line; do sbatch --job-name=${line}_mlmm_gwas --output=${line}_batch.out run_mlmm_gwas_batch_script.sh $line ; done < flower_precocity.txt
