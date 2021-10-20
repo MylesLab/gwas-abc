@@ -1,0 +1,70 @@
+---
+title: "top_snp_boxplots"
+author: "Sophie Watts"
+date: "04/10/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(message = F, warning = F)
+
+library(tidyverse)
+
+```
+
+
+```{r zoom_chr10}
+
+multi_firmness_change_pvals <- read_csv("multi-gwas/mlmm_gwas/mlmm_pvals/percent_firmness_avg_17_mlmm_pvals.csv")
+std_firmness_change_pvals <- read_csv("multi-gwas/mlmm_gwas/standard_pvals/percent_firmness_avg_17_std_pvals.csv")
+
+
+firmness_change <- std_firmness_change_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
+
+firmness_change$chr <- as.numeric(as.character(firmness_change$chr))
+firmness_change$bp <- as.numeric(as.character(firmness_change$bp))
+
+#filter for chromosome 10 and region
+firmness_change <- firmness_change %>% filter(chr == 10)
+firmness_change <- firmness_change %>% filter(bp >= 20000000)
+
+firmness_change <- firmness_change %>% mutate(log_pval = -log10(pval))
+
+mlmm_top <- firmness_change %>% filter(bp == 27438934)
+
+pg1_marker <- firmness_change %>% filter(bp == 27285866)
+
+
+zoom_chr10_firmness_change <- ggplot(firmness_change, aes(x=bp, y=log_pval))+
+  geom_point(size=2, alpha=0.6)+
+  geom_point(data=mlmm_top, 
+             aes(x=bp,y=log_pval), 
+             color='red',
+             size=2)+
+  geom_point(data=pg1_marker, 
+             aes(x=bp,y=log_pval), 
+             color='purple',
+             size=2)+
+  theme_bw()+
+  geom_hline(yintercept=6.625633, linetype="dashed")+
+  geom_vline(xintercept = 27285865, linetype="solid")+
+  geom_vline(xintercept = 27807139, linetype="solid")+
+  #annotate("rect", xmin = 27285865, xmax = 27288648, ymin = 5.5, ymax = 7.395314, alpha = 0.3)+
+  #annotate("rect", xmin = 27807139, xmax = 27807897, ymin = 5.5, ymax = 7.395314, alpha = 0.3)+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.text.x = element_text(angle = 90, hjust = 1), axis.title=element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", size = 0.2), plot.title = element_text(size = 9))
+
+zoom_chr10_firmness_change
+
+ggsave("figures/change_firmness_zoom.pdf", plot = zoom_chr10_firmness_change)
+
+
+
+```
+
+
+
+
+
+
+

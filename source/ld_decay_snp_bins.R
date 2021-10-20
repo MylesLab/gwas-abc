@@ -19,13 +19,19 @@ ld_table <- ld_table %>% select(CHR_A:R2)
 ld_table <- ld_table %>% mutate(snp_dist = BP_B - BP_A)
 
 #now sort the table so it goes from SNPs that are closest together up to the ones that are farthest apart.
+ld_table <- ld_table[order(ld_table$snp_dist),]
 
 
 
 
-r2 <- as.numeric(ld_table[, "R2"])
+list <- (1:100, 101:200, 201:300)
 
-snp_r2 <- cbind(snp_dist, r2)
+subset <- ld_table[c(1:100),]
+
+
+
+
+snp_r2 <- cbind(dist, r2)
 samp_bins = seq(0, 1000000, by = 1000)
 median_r2 = mean_r2 = c()
 for (i in 1:(length(samp_bins) - 1)) {

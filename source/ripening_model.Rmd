@@ -1,0 +1,15 @@
+---
+title: "ripening_model"
+author: "Sophie Watts"
+date: "12/10/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(message = F, warning = F)
+
+library(tidyverse)
+
+```
+

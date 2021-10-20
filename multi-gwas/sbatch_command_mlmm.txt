@@ -5,3 +5,13 @@ while read -r line; do sbatch --job-name=${line}_mlmm_gwas --output=${line}_batc
 sbatch --job-name=precocity_16_harv_mlmm_gwas --output=precocity_16_harv_batch.out run_mlmm_gwas_batch_script.sh precocity_16_harv
 
 sbatch --job-name=flowering_jul_16_harv_mlmm_gwas --output=flowering_jul_16_harv_batch.out run_mlmm_gwas_batch_script.sh flowering_jul_16_harv
+
+#re-ran the mlmm for 4 other phenotypes that seem to have failed for no good reason.
+
+sbatch --job-name=weight_avg_17_stor_gwas --output=weight_avg_17_stor_batch.out run_mlmm_gwas_batch_script.sh weight_avg_17_stor
+
+sbatch --job-name=brix_17_harv_gwas --output=brix_17_harv_batch.out run_mlmm_gwas_batch_script.sh brix_17_harv
+
+sbatch --job-name=weight_avg_17_harv_gwas --output=weight_avg_17_harv_batch.out run_mlmm_gwas_batch_script.sh weight_avg_17_harv
+
+sbatch --job-name=percent_acidity_17_gwas --output=percent_acidity_17_batch.out run_mlmm_gwas_batch_script.sh percent_acidity_17
