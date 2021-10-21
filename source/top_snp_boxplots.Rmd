@@ -17,32 +17,32 @@ library(EnvStats)
 ```{r prep}
 #Load p-values from standard GWAS for harvest date, firmness at harvest, firmness after storage, brix after storage, change in brix and juiciness.
 
-juiciness_pvals <- read_csv("../multi-gwas/mlmm_gwas/standard_pvals/juiciness_16_harv_std_pvals.csv")
+juiciness_pvals <- read_csv("../multi-gwas/standard_pvals/juiciness_16_harv_std_pvals.csv")
 #NAC
 
-date_pvals <- read_csv("../multi-gwas/mlmm_gwas/standard_pvals/date_jul_17_harv_std_pvals.csv")
+date_pvals <- read_csv("../multi-gwas/standard_pvals/date_jul_17_harv_std_pvals.csv")
 #NAC
 
-firm_harv <- read_csv("../multi-gwas/mlmm_gwas/standard_pvals/firmness_avg_17_harv_std_pvals.csv")
+firm_harv <- read_csv("../multi-gwas/standard_pvals/firmness_avg_17_harv_std_pvals.csv")
 #NAC
 
-firm_stor <- read_csv("../multi-gwas/mlmm_gwas/standard_pvals/firmness_avg_17_stor_std_pvals.csv")
+firm_stor <- read_csv("../multi-gwas/standard_pvals/firmness_avg_17_stor_std_pvals.csv")
 #the top SNP is 16_9235229_tassel then NAC.
 
-brix_stor <- read_csv("../multi-gwas/mlmm_gwas/standard_pvals/brix_17_stor_std_pvals.csv")
+brix_stor <- read_csv("../multi-gwas/standard_pvals/brix_17_stor_std_pvals.csv")
 #NAC
 
-change_brix <- read_csv("../multi-gwas/mlmm_gwas/standard_pvals/percent_brix_17_std_pvals.csv")
+change_brix <- read_csv("../multi-gwas/standard_pvals/percent_brix_17_std_pvals.csv")
 #NAC
 
 
 #load p-values from softening GWAS.
-change_firm <- read_csv("../multi-gwas/mlmm_gwas/standard_pvals/percent_firmness_avg_17_std_pvals.csv")
+change_firm <- read_csv("../multi-gwas/standard_pvals/percent_firmness_avg_17_std_pvals.csv")
 #Top SNP: 10_27438934_tassel, 10_27285866_vineland_pg1
 
 
 #load p-values from standard phenolics GWAS.
-phenolics <- read_csv("../multi-gwas/mlmm_gwas/standard_pvals/tpc_std_pvals.csv")
+phenolics <- read_csv("../multi-gwas/standard_pvals/tpc_std_pvals.csv")
 #top hit on chromo 15 is X15_3806070_samtools_A
 
 top_phenolics <- phenolics %>%
@@ -89,6 +89,67 @@ snp_ped <- snp_ped %>% rename(apple_id = X1,
                               tpc_2nd_chr16_1 = X15, tpc_2nd_chr16_2 = X16,
                               firm_stor_top_chr16_1 = X17, firm_stor_top_chr16_2 = X18)
 
+#sanity check the allele frequencies, so load in the freq file.
+snp_freq <- read_table("../data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001.frq")
+
+#NAC frequency
+table(snp_ped$nac_1)
+table(snp_ped$nac_2)
+#A: 488, 0.2314991
+#C: 1620, 0.7685009
+#total:2108
+#MAF is 0.2315
+
+#PG frequency
+table(snp_ped$pg1_1)
+table(snp_ped$pg1_2)
+#G: 1294, 0.613852
+#T: 814, 0.386148
+#MAF: 0.3861
+
+#Soft top
+table(snp_ped$soft_top_chr10_1)
+table(snp_ped$soft_top_chr10_2)
+#C: 0.8747628
+#T: 0.1252372
+#MAF: 0.1252
+
+#TPC 15
+table(snp_ped$tpc_top_chr15_1)
+table(snp_ped$tpc_top_chr15_2)
+#A: 0.02988615
+#T: 0.9701139
+#MAF:0.02989
+
+#TPC 16
+table(snp_ped$tpc_2nd_chr16_1)
+table(snp_ped$tpc_2nd_chr16_2)
+#A: 0.9881404
+#G: 0.01185958
+#MAF: 0.01186
+
+#FIRM STORAGE
+table(snp_ped$firm_stor_top_chr16_1)
+table(snp_ped$firm_stor_top_chr16_2)
+#A: 0.7357685
+#C: 0.2642315
+#MAF: 0.2642
+
+#all looks good.
+
+#merge the snp geno and snp ped file.
+top_snp_genos <- left_join(snp_genos, snp_ped, by = "apple_id")
+
+top_snp_genos <- top_snp_genos %>% unite("nac_alleles", nac_1:nac_2, sep = "")
+top_snp_genos <- top_snp_genos %>% unite("pg1_alleles", pg1_1:pg1_2, sep = "")
+top_snp_genos <- top_snp_genos %>% unite("soft_top_chr10_alleles", soft_top_chr10_1:soft_top_chr10_2, sep = "")
+top_snp_genos <- top_snp_genos %>% unite("tpc_top_chr15_alleles", tpc_top_chr15_1:tpc_top_chr15_2, sep = "")
+top_snp_genos <- top_snp_genos %>% unite("tpc_2nd_chr16_alleles", tpc_2nd_chr16_1:tpc_2nd_chr16_2, sep = "")
+top_snp_genos <- top_snp_genos %>% unite("firm_stor_top_chr16_alleles", firm_stor_top_chr16_1:firm_stor_top_chr16_2, sep = "")
+
+
+#save file
+write_csv(top_snp_genos, file = "../outputs/top_snp_genos.csv", quote = "none")
 
 ```
 
@@ -96,40 +157,47 @@ Make boxplots for the top SNPs from GWAS for each phenotype.
 
 ```{r phenolics}
 
+#load in SNP genotypes.
+top_snp_genos <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/top_snp_genos.csv")
 #keep SNPs for phenolics
-phenolic_snp <- snp_genos %>% select(apple_id, tpc_top_chr15, tpc_2nd_chr16)
+tpc_snp <- top_snp_genos %>% select(apple_id, tpc_top_chr15, tpc_2nd_chr16, tpc_top_chr15_alleles, tpc_2nd_chr16_alleles)
 
 #load phenotype data
 geno_pheno_meta_data <- read_csv("../outputs/geno_pheno_meta_data.csv")
-
 tpc_pheno <- geno_pheno_meta_data %>% select(apple_id, tpc)
 
 #join pheno data and snp data
-phenolic_snp <- left_join(phenolic_snp, tpc_pheno, by = "apple_id")
+tpc_snp <- left_join(tpc_snp, tpc_pheno, by = "apple_id")
 
 #remove rows without phenotype data
-phenolic_snp <- phenolic_snp %>% filter(!is.na(tpc))
+tpc_snp <- tpc_snp %>% filter(!is.na(tpc))
 
 #make subset for each SNP
-chr_15 <- phenolic_snp %>% select(tpc, tpc_top_chr15)
-chr_16 <- phenolic_snp %>% select(tpc, tpc_2nd_chr16)
+chr_15 <- tpc_snp %>% select(tpc, tpc_top_chr15, tpc_top_chr15_alleles)
+chr_16 <- tpc_snp %>% select(tpc, tpc_2nd_chr16, tpc_2nd_chr16_alleles)
+
 
 #15_3806070_samtools_A
 phenolics_chr_15 <- ggplot(chr_15, aes(x=factor(tpc_top_chr15), y=tpc)) + 
-  geom_boxplot()+
+  geom_boxplot(fill='#A4A4A4', color="black")+
   theme_bw()+
   stat_n_text() + 
-  scale_x_discrete(labels = c('AA','AT','TT'))+
+  scale_x_discrete(labels = c('TT','AT','AA'))+
   labs(x="Chromosome 15 genotypes", y="Phenolics (umol/g)")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
 ggsave(phenolics_chr_15, file = "../figures/phenolics_chr_15.pdf", width = 7, height = 10, units = "cm")
 
+
+#Chr 16
+table(tpc_af$tpc_2nd_chr16_1 == "A" & tpc_af$tpc_2nd_chr16_2 == "A")
+#AA= 428
+
 #X16_5256210_samtools_G
 phenolics_chr_16 <- ggplot(chr_16, aes(x=factor(tpc_2nd_chr16), y=tpc)) + 
-  geom_boxplot()+
+  geom_boxplot(fill='#A4A4A4', color="black")+
   theme_bw()+
   stat_n_text() + 
-  scale_x_discrete(labels = c('GG','GA','AA'))+
+  scale_x_discrete(labels = c('AA','AG',"GG"))+
   labs(x="Chromosome 16 genotypes", y="Phenolics (umol/g)")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
 ggsave(phenolics_chr_16, file = "../figures/phenolics_chr_16.pdf", width = 7, height = 10, units = "cm")
@@ -139,12 +207,13 @@ ggsave(phenolics_chr_16, file = "../figures/phenolics_chr_16.pdf", width = 7, he
 
 ```{r nac}
 
+#load in SNP genotypes.
+top_snp_genos <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/top_snp_genos.csv")
 #keep SNPs for nac
-nac_snp <- snp_genos %>% select(apple_id, nac)
+nac_snp <- top_snp_genos %>% select(apple_id, nac, nac_alleles)
 
 #load phenotype data
 geno_pheno_meta_data <- read_csv("../outputs/geno_pheno_meta_data.csv")
-
 nac_pheno <- geno_pheno_meta_data %>% select(apple_id, date_jul_17_harv, juiciness_16_harv, firmness_avg_17_stor, firmness_avg_17_harv, percent_brix_17, brix_17_stor)
 
 #join pheno data and snp data
@@ -152,67 +221,68 @@ nac_snp <- left_join(nac_snp, nac_pheno, by = "apple_id")
 
 
 #make subset for each pheno
-date <- nac_snp %>% select(date_jul_17_harv, nac) %>% filter(!is.na(date_jul_17_harv))
-juicy <- nac_snp %>% select(juiciness_16_harv, nac) %>% filter(!is.na(juiciness_16_harv))
-firm_stor <- nac_snp %>% select(firmness_avg_17_stor, nac) %>% filter(!is.na(firmness_avg_17_stor))
-firm_harv <- nac_snp %>% select(firmness_avg_17_harv, nac) %>% filter(!is.na(firmness_avg_17_harv))
-change_brix <- nac_snp %>% select(percent_brix_17, nac) %>% filter(!is.na(percent_brix_17))
-brix_stor <- nac_snp %>% select(brix_17_stor, nac) %>% filter(!is.na(brix_17_stor))
+date <- nac_snp %>% select(date_jul_17_harv, nac, nac_alleles) %>% filter(!is.na(date_jul_17_harv))
+juicy <- nac_snp %>% select(juiciness_16_harv, nac, nac_alleles) %>% filter(!is.na(juiciness_16_harv))
+firm_stor <- nac_snp %>% select(firmness_avg_17_stor, nac, nac_alleles) %>% filter(!is.na(firmness_avg_17_stor))
+firm_harv <- nac_snp %>% select(firmness_avg_17_harv, nac, nac_alleles) %>% filter(!is.na(firmness_avg_17_harv))
+change_brix <- nac_snp %>% select(percent_brix_17, nac, nac_alleles) %>% filter(!is.na(percent_brix_17))
+brix_stor <- nac_snp %>% select(brix_17_stor, nac, nac_alleles) %>% filter(!is.na(brix_17_stor))
 
+#comparing results to Zoe, I appear to have ten fewer samples, and also ten sample we both share are labelled as heterozygotes in my data by there are homozygotes in Zoe's.
 
-date_nac <- ggplot(date, aes(x=factor(nac), y=date_jul_17_harv)) + 
-  geom_boxplot()+
+date_nac <- ggplot(date, aes(x=factor(nac, levels = c("2", "1", "0")), y=date_jul_17_harv)) + 
+  geom_boxplot(fill='#A4A4A4', color="black")+
   theme_bw()+
   stat_n_text() + 
-  #scale_x_discrete(labels = c('AA','AC','CC'))+
+  scale_x_discrete(labels = c('AA','AC','CC'))+
   labs(x="NAC18.1 genotype", y="Harvest date (Julian date)")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-ggsave(date_nac, file = "../figures/date_nac..pdf", width = 7, height = 10, units = "cm")
+ggsave(date_nac, file = "../figures/date_nac.pdf", width = 7, height = 10, units = "cm")
 
 juicy_nac <- ggplot(juicy, aes(x=factor(nac, levels = c("2", "1", "0")), y=juiciness_16_harv)) + 
-  geom_boxplot()+
+  geom_boxplot(fill='#A4A4A4', color="black")+
   theme_bw()+
   stat_n_text() + 
   scale_x_discrete(labels = c('AA','AC','CC'))+
   labs(x="NAC18.1 genotype", y="Juiciness")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-ggsave(juicy_nac, file = "../figures/juicy_nac.jpeg")
+ggsave(juicy_nac, file = "../figures/juicy_nac.pdf", width = 7, height = 10, units = "cm")
 
 firm_stor_nac <- ggplot(firm_stor, aes(x=factor(nac, levels = c("2", "1", "0")), y=firmness_avg_17_stor)) +
-  geom_boxplot()+
+  geom_boxplot(fill='#A4A4A4', color="black")+
   theme_bw()+
   stat_n_text() + 
   scale_x_discrete(labels = c('AA','AC','CC'))+
   labs(x="NAC18.1 genotype", y="Firmness after storage (kg/cm2")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-ggsave(firm_stor_nac, file = "../figures/firm_stor_nac.jpeg")
+ggsave(firm_stor_nac, file = "../figures/firm_stor_nac.pdf", width = 7, height = 10, units = "cm")
 
 firm_harv_nac <- ggplot(firm_harv, aes(x=factor(nac, levels = c("2", "1", "0")), y=firmness_avg_17_harv)) +
-  geom_boxplot()+
+  geom_boxplot(fill='#A4A4A4', color="black")+
   theme_bw()+
   stat_n_text() + 
   scale_x_discrete(labels = c('AA','AC','CC'))+
   labs(x="NAC18.1 genotype", y="Firmness at harvest (kg/cm2)")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-ggsave(firm_harv_nac, file = "../figures/firm_harv_nac.jpeg")
+ggsave(firm_harv_nac, file = "../figures/firm_harv_nac.pdf", width = 7, height = 10, units = "cm")
 
 change_brix_nac <- ggplot(change_brix, aes(x=factor(nac, levels = c("2", "1", "0")), y=percent_brix_17)) +
-  geom_boxplot()+
+  geom_boxplot(fill='#A4A4A4', color="black")+
   theme_bw()+
   stat_n_text() + 
   scale_x_discrete(labels = c('AA','AC','CC'))+
   labs(x="NAC18.1 genotype", y="Change in SSC during storage (%)")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-ggsave(change_brix_nac, file = "../figures/change_brix_nac.jpeg")
+ggsave(change_brix_nac, file = "../figures/change_brix_nac.pdf", width = 7, height = 10, units = "cm")
 
 brix_stor_nac <- ggplot(brix_stor, aes(x=factor(nac, levels = c("2", "1", "0")), y=brix_17_stor)) +
-  geom_boxplot()+
+  geom_boxplot(fill='#A4A4A4', color="black")+
   theme_bw()+
   stat_n_text() + 
   scale_x_discrete(labels = c('AA','AC','CC'))+
   labs(x="NAC18.1 genotype", y="SSC after storage (Brix)")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-ggsave(brix_stor_nac, file = "../figures/brix_stor_nac.jpeg")
+ggsave(brix_stor_nac, file = "../figures/brix_stor_nac.pdf", width = 7, height = 10, units = "cm")
 
 
 
@@ -221,12 +291,13 @@ ggsave(brix_stor_nac, file = "../figures/brix_stor_nac.jpeg")
 
 ```{r softening}
 
+#load in SNP genotypes.
+top_snp_genos <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/top_snp_genos.csv")
 #keep SNPs for nac
-soft_snp <- snp_genos %>% select(apple_id, soft_top_chr10, pg1)
+soft_snp <- top_snp_genos %>% select(apple_id, pg1, pg1_alleles, soft_top_chr10, soft_top_chr10_alleles)
 
 #load phenotype data
 geno_pheno_meta_data <- read_csv("../outputs/geno_pheno_meta_data.csv")
-
 soft_pheno <- geno_pheno_meta_data %>% select(apple_id, percent_firmness_avg_17)
 
 #join pheno data and snp data
@@ -235,31 +306,29 @@ soft_snp <- left_join(soft_snp, soft_pheno, by = "apple_id")
 #remove rows without phenotype data
 soft_snp <- soft_snp %>% filter(!is.na(percent_firmness_avg_17))
 
-#make subset for each pheno
 #make subset for each SNP
-top_snp <- soft_snp %>% select(percent_firmness_avg_17, soft_top_chr10)
-pg1_snp <- soft_snp %>% select(percent_firmness_avg_17, pg1)
+top_snp <- soft_snp %>% select(percent_firmness_avg_17, soft_top_chr10, soft_top_chr10_alleles)
+pg1_snp <- soft_snp %>% select(percent_firmness_avg_17, pg1, pg1_alleles)
 
-
-#ref T
 
 soft_top_snp <- ggplot(top_snp, aes(x=factor(soft_top_chr10), y=percent_firmness_avg_17)) + 
-  geom_boxplot()+
+  geom_boxplot(fill='#A4A4A4', color="black")+
   theme_bw()+
-  stat_n_text() + 
+  stat_n_text() +
+  scale_x_discrete(labels = c('CC', 'TC', 'TT'))+
   labs(x="PG1 genotype", y="Softening (%)")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-ggsave(soft_top_snp, file = "../figures/soft_top_snp.jpeg")
+ggsave(soft_top_snp, file = "../figures/soft_top_snp.pdf", width = 7, height = 10, units = "cm")
 
-#ref T
+
 soft_pg1_snp <- ggplot(pg1_snp, aes(x=factor(pg1), y=percent_firmness_avg_17)) +
-  geom_boxplot()+
+  geom_boxplot(fill='#A4A4A4', color="black")+
   theme_bw()+
   stat_n_text() + 
-  scale_x_discrete(labels = c('TT', 'GT', 'GG'))+
+  scale_x_discrete(labels = c('GG', 'TG', 'TT'))+
   labs(x="PG1 genotype", y="Softening (%)")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-ggsave(soft_pg1_snp, file = "../figures/soft_pg1_snp.jpeg")
+ggsave(soft_pg1_snp, file = "../figures/soft_pg1_snp.pdf", width = 7, height = 10, units = "cm")
 
 
 ```
