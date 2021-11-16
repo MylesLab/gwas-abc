@@ -290,7 +290,6 @@ ggsave(brix_stor_nac, file = "../figures/brix_stor_nac.pdf", width = 7, height =
 
 
 ```{r softening}
-
 #load in SNP genotypes.
 top_snp_genos <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/top_snp_genos.csv")
 #keep SNPs for nac
@@ -329,6 +328,58 @@ soft_pg1_snp <- ggplot(pg1_snp, aes(x=factor(pg1), y=percent_firmness_avg_17)) +
   labs(x="PG1 genotype", y="Softening (%)")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
 ggsave(soft_pg1_snp, file = "../figures/soft_pg1_snp.pdf", width = 7, height = 10, units = "cm")
+
+
+```
+
+
+```{r sample_size_check}
+
+#I wanted to check the differences in sample sizes between my boxplots and Zoe from the NAC paper. All checked out to be fine, in summary there are some samples that she has that I don't have because samples failed GBS, she doesn't have samples I have because I there was no HRM data for some samples but there genotype ended up being imputed.
+
+table_2 <- read_excel("~/Downloads/Supplementary files 2/Supp Tables/Table 2.xlsx", 
+     col_types = c("text", "text", "text", 
+        "text", "text", "text", "text", "text", 
+        "text", "text"), na = "NA")
+
+table_2 <- table_2 %>% select(apple_id="Apple ID", "NAC18.1", harvest="Harvest Date (Julian Days)")
+table_2 <- na.omit(table_2)
+
+#AA  AC  CC 
+#72 202 556 
+
+nac_snp <- nac_snp %>% select(apple_id, nac_alleles, date_jul_17_harv)
+table_2$apple_id <- as.numeric(as.character(table_2$apple_id))
+merged_nac <- table_2 %>% left_join(nac_snp)
+table(merged_nac$NAC18.1==merged_nac$nac_alleles)
+#there are 778 samples that we both share for harvest date.
+
+nac_snp <- na.omit(nac_snp)
+table(nac_snp$nac_alleles)
+#AA  AC  CC 
+#72 215 524 
+
+table(!nac_snp$apple_id %in% table_2$apple_id)
+#there are 33 samples that GBS but not HRM
+
+table(!table_2$apple_id %in% nac_snp$apple_id)
+#there are 52 samples that HRM but not GBS
+
+missing_hrm <- nac_snp[!nac_snp$apple_id %in% table_2$apple_id,]
+missing_gbs <- table_2[!table_2$apple_id %in% nac_snp$apple_id,]
+
+table(missing_hrm$nac_alleles)
+#AA AC CC 
+#1 24  8 
+
+table(missing_gbs$NAC18.1)
+#AA AC CC 
+#1 11 40 
+
+#These last two tables align with the differences seen between the two sets of genotype sets. As an example I have AA that Zoe doens't and she has one AA that don't have, but it balances out for us both to have the same overall number of AAs.
+
+
+
 
 
 ```

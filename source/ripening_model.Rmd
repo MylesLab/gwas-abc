@@ -10,6 +10,64 @@ output: html_document
 knitr::opts_chunk$set(message = F, warning = F)
 
 library(tidyverse)
+library(patchwork)
+
+```
+
+
+```{r model}
+
+#load genotype data
+nac_data <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/top_snp_genos.csv")
+#just want NAC
+nac_data <- nac_data %>% select(apple_id, nac_alleles)
+
+#load phenotype date
+pheno_data <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/geno_pheno_meta_data.csv")
+
+pheno_data <- pheno_data %>% select(apple_id, brix_17_harv, brix_17_stor, firmness_avg_17_harv, firmness_avg_17_stor, date_jul_17_harv)
+
+nac_pheno_data <- left_join(nac_data, pheno_data, by = "apple_id")
+
+median_summary <- nac_pheno_data %>%
+  group_by(nac_alleles) %>%
+  summarise(firm_harv = median(firmness_avg_17_harv, na.rm = T), firm_stor = median(firmness_avg_17_stor, na.rm = T), brix_harv = median(brix_17_harv, na.rm = T), brix_stor = median(brix_17_stor, na.rm = T), harv_date = median(date_jul_17_harv, na.rm = T))
+
+median_summary <- median_summary %>% mutate(stor_date = harv_date + 90)
+
+#make table for brix
+brix_at_harvest <- median_summary %>% select(nac_alleles, brix_harv, harv_date) %>% rename(brix = brix_harv, date = harv_date)
+brix_at_storage <- median_summary %>% select(nac_alleles, brix_stor, stor_date) %>%  rename(brix = brix_stor, date = stor_date)
+brix_data <- rbind(brix_at_harvest, brix_at_storage)
+brix_data <- brix_data %>%  mutate(timing = if_else(date < 300, "harvest_date", "storage_date"))
+
+#make table for firmness
+firm_at_harvest <- median_summary %>% select(nac_alleles, firm_harv, harv_date) %>% rename(firmness = firm_harv, date = harv_date)
+firm_at_storage <- median_summary %>% select(nac_alleles, firm_stor, stor_date) %>%  rename(firmness = firm_stor, date = stor_date)
+firm_data <- rbind(firm_at_harvest, firm_at_storage)
+firm_data <- firm_data %>%  mutate(timing = if_else(date < 300, "harvest_date", "storage_date"))
+
+#plot for brix
+brix_change_nac <- ggplot(brix_data, aes(x=date, y=brix)) +
+    geom_point(aes(shape = timing, color = nac_alleles), size = 3)+
+    geom_line(aes(group = nac_alleles, color = nac_alleles), linetype = "dashed", size = 0.8)+
+    scale_color_manual(values=c("#D81B60", "#FFC107","#1E88E5"))+
+    scale_x_continuous(name = "Date",breaks=c(244,274,305, 335, 366))+
+    scale_y_continuous(name = "Soluble solids content (Brix)", limits = c(9, 13))+
+    theme_classic()
+
+firm_change_nac <- ggplot(firm_data, aes(x=date, y=firmness)) +
+    geom_point(aes(shape = timing, color = nac_alleles), size = 3)+
+    geom_line(aes(group = nac_alleles, color = nac_alleles), linetype = "dashed", size = 0.8)+
+    scale_color_manual(values=c("#D81B60", "#FFC107","#1E88E5"))+
+    scale_x_continuous(name = "Date", breaks=c(244,274,305, 335, 366))+
+    scale_y_continuous(name = "Firmness (kg/cm)", limits = c(3, 9), breaks = c(3,5 ,7,9))+
+    theme_classic()
+
+ripening_model_fig <- brix_change_nac +firm_change_nac
+
+ggsave(ripening_model_fig, file = "../figures/ripening_model_fig.pdf", width = 25, height = 10, units = "cm")
+
 
 ```
 
