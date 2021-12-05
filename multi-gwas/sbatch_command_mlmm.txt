@@ -8,4 +8,4 @@ sbatch --job-name=flowering_jul_16_harv_mlmm_gwas --output=flowering_jul_16_harv
 
 #re-ran the mlmm for  other phenotypes that seem to have failed for no good reason.
 
-sbatch --job-name=percent_acidity_17_gwas --output=percent_acidity_17_batch.out run_mlmm_gwas_batch_script_final.sh percent_acidity_17
+sbatch --job-name=percent_acidity_17_mlmm_gwas_final --output=percent_acidity_17_batch.out run_mlmm_gwas_batch_script_final_percent_acidity.sh percent_acidity_17

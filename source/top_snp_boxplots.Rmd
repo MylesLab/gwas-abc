@@ -176,21 +176,16 @@ tpc_snp <- tpc_snp %>% filter(!is.na(tpc))
 chr_15 <- tpc_snp %>% select(tpc, tpc_top_chr15, tpc_top_chr15_alleles)
 chr_16 <- tpc_snp %>% select(tpc, tpc_2nd_chr16, tpc_2nd_chr16_alleles)
 
-
 #15_3806070_samtools_A
 phenolics_chr_15 <- ggplot(chr_15, aes(x=factor(tpc_top_chr15), y=tpc)) + 
   geom_boxplot(fill='#A4A4A4', color="black")+
   theme_bw()+
   stat_n_text() + 
   scale_x_discrete(labels = c('TT','AT','AA'))+
-  labs(x="Chromosome 15 genotypes", y="Phenolics (umol/g)")+
+  scale_y_continuous(limits = c(-3,30))+
+  labs(x="Chr15:3806070 genotypes", y="Phenolics (umol/g)")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
 ggsave(phenolics_chr_15, file = "../figures/phenolics_chr_15.pdf", width = 7, height = 10, units = "cm")
-
-
-#Chr 16
-table(tpc_af$tpc_2nd_chr16_1 == "A" & tpc_af$tpc_2nd_chr16_2 == "A")
-#AA= 428
 
 #X16_5256210_samtools_G
 phenolics_chr_16 <- ggplot(chr_16, aes(x=factor(tpc_2nd_chr16), y=tpc)) + 
@@ -198,9 +193,11 @@ phenolics_chr_16 <- ggplot(chr_16, aes(x=factor(tpc_2nd_chr16), y=tpc)) +
   theme_bw()+
   stat_n_text() + 
   scale_x_discrete(labels = c('AA','AG',"GG"))+
-  labs(x="Chromosome 16 genotypes", y="Phenolics (umol/g)")+
+  scale_y_continuous(limits = c(-3,30))+
+  labs(x="Chr16:5256210 genotypes", y="Phenolics (umol/g)")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
 ggsave(phenolics_chr_16, file = "../figures/phenolics_chr_16.pdf", width = 7, height = 10, units = "cm")
+
 
 ```
 
@@ -235,7 +232,8 @@ date_nac <- ggplot(date, aes(x=factor(nac, levels = c("2", "1", "0")), y=date_ju
   theme_bw()+
   stat_n_text() + 
   scale_x_discrete(labels = c('AA','AC','CC'))+
-  labs(x="NAC18.1 genotype", y="Harvest date (Julian date)")+
+  labs(x="NAC D5Y (Chr3:30698039)", y="Harvest date (Julian date)")+
+  scale_y_continuous(limits = c(217,300))+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
 ggsave(date_nac, file = "../figures/date_nac.pdf", width = 7, height = 10, units = "cm")
 
@@ -244,7 +242,8 @@ juicy_nac <- ggplot(juicy, aes(x=factor(nac, levels = c("2", "1", "0")), y=juici
   theme_bw()+
   stat_n_text() + 
   scale_x_discrete(labels = c('AA','AC','CC'))+
-  labs(x="NAC18.1 genotype", y="Juiciness")+
+  labs(x="NAC D5Y (Chr3:30698039)", y="Juiciness")+
+  scale_y_continuous(limits = c(-2,25))+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
 ggsave(juicy_nac, file = "../figures/juicy_nac.pdf", width = 7, height = 10, units = "cm")
 
@@ -253,7 +252,8 @@ firm_stor_nac <- ggplot(firm_stor, aes(x=factor(nac, levels = c("2", "1", "0")),
   theme_bw()+
   stat_n_text() + 
   scale_x_discrete(labels = c('AA','AC','CC'))+
-  labs(x="NAC18.1 genotype", y="Firmness after storage (kg/cm2")+
+  scale_y_continuous(limits = c(0,15))+
+  labs(x="NAC D5Y (Chr3:30698039)", y="Firmness after storage (kg/cm2")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
 ggsave(firm_stor_nac, file = "../figures/firm_stor_nac.pdf", width = 7, height = 10, units = "cm")
 
@@ -262,7 +262,8 @@ firm_harv_nac <- ggplot(firm_harv, aes(x=factor(nac, levels = c("2", "1", "0")),
   theme_bw()+
   stat_n_text() + 
   scale_x_discrete(labels = c('AA','AC','CC'))+
-  labs(x="NAC18.1 genotype", y="Firmness at harvest (kg/cm2)")+
+  scale_y_continuous(limits = c(0,15))+
+  labs(x="NAC D5Y (Chr3:30698039)", y="Firmness at harvest (kg/cm2)")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
 ggsave(firm_harv_nac, file = "../figures/firm_harv_nac.pdf", width = 7, height = 10, units = "cm")
 
@@ -271,7 +272,8 @@ change_brix_nac <- ggplot(change_brix, aes(x=factor(nac, levels = c("2", "1", "0
   theme_bw()+
   stat_n_text() + 
   scale_x_discrete(labels = c('AA','AC','CC'))+
-  labs(x="NAC18.1 genotype", y="Change in SSC during storage (%)")+
+  scale_y_continuous(limits = c(-65,65),breaks=c(-50, -25, 0, 25, 50))+
+  labs(x="NAC D5Y (Chr3:30698039)", y="Change in SSC during storage (%)")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
 ggsave(change_brix_nac, file = "../figures/change_brix_nac.pdf", width = 7, height = 10, units = "cm")
 
@@ -280,7 +282,8 @@ brix_stor_nac <- ggplot(brix_stor, aes(x=factor(nac, levels = c("2", "1", "0")),
   theme_bw()+
   stat_n_text() + 
   scale_x_discrete(labels = c('AA','AC','CC'))+
-  labs(x="NAC18.1 genotype", y="SSC after storage (Brix)")+
+  scale_y_continuous(limits = c(3,25))+
+  labs(x="NAC D5Y (Chr3:30698039)", y="SSC after storage (Brix)")+
   theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
 ggsave(brix_stor_nac, file = "../figures/brix_stor_nac.pdf", width = 7, height = 10, units = "cm")
 
