@@ -1,0 +1,11 @@
+chromosome,class,start,stop,annotation
+Chr10,gene,27393118,27399176,ID=gene:MD10G1180700;Name=MD10G1180700;Note=Calcium-binding EF-hand family protein
+Chr10,gene,27399293,27401021,ID=gene:MD10G1180800;Name=MD10G1180800;Note=Ribosomal protein L14
+Chr10,gene,27405735,27411252,ID=gene:MD10G1180900;Name=MD10G1180900;Note=Ypt/Rab-GAP domain of gyp1p superfamily protein
+Chr10,gene,27411839,27413593,ID=gene:MD10G1181000;Name=MD10G1181000;Note=GRAS family transcription factor
+Chr10,gene,27423183,27427027,ID=gene:MD10G1181100;Name=MD10G1181100;Note=AGC (cAMP-dependent
+Chr10,gene,27435564,27436960,ID=gene:MD10G1181200;Name=MD10G1181200;Note=chromatin remodeling 8
+Chr10,gene,27438437,27440820,ID=gene:MD10G1181300;Name=MD10G1181300;Note=non-intrinsic ABC protein 4
+Chr10,gene,27441307,27442810,ID=gene:MD10G1181400;Name=MD10G1181400;Note=nucleolar RNA-binding Nop10p family protein
+Chr10,gene,27443872,27459045,ID=gene:MD10G1181500;Name=MD10G1181500;Note=ribophorin II (RPN2) family protein
+Chr10,gene,27459405,27463679,ID=gene:MD10G1181600;Name=MD10G1181600;Note=S-adenosyl-L-methionine-dependent methyltransferases superfamily protein

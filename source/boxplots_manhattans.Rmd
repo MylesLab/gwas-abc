@@ -1,0 +1,369 @@
+---
+title: "gwas_plots"
+author: "Sophie Watts"
+date: "15/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+library(tidyverse)
+library(patchwork)
+library(qqman)
+library(scales)
+library(cowplot)
+
+```
+
+
+
+```{r date}
+#load in SNP genotypes.
+top_snp_genos <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/top_snp_genos.csv")
+
+#keep SNPs for NAC.
+nac_snp <- top_snp_genos %>% select(apple_id, nac, nac_alleles)
+
+#load phenotype data
+geno_pheno_meta_data <- read_csv("../outputs/geno_pheno_meta_data.csv")
+nac_pheno <- geno_pheno_meta_data %>% select(apple_id, date_jul_17_harv)
+
+#join pheno data and snp data
+nac_snp <- left_join(nac_snp, nac_pheno, by = "apple_id")
+
+date <- nac_snp %>% select(date_jul_17_harv, nac, nac_alleles) %>% filter(!is.na(date_jul_17_harv))
+
+date_nac <- ggplot(date, aes(x=factor(nac, levels = c("2", "1", "0")), y=date_jul_17_harv)) + 
+  geom_jitter(aes(colour=as.factor(nac)), position = position_jitterdodge(jitter.width = 1, dodge.width =0.8),stroke=0, alpha = 0.7, size=2, show.legend=FALSE) +
+  stat_summary(fun=median, geom = "crossbar",
+               position = position_dodge(width=0.8),
+               width=0.5,
+               size=0.2,
+               show.legend=FALSE)+
+  scale_colour_manual(values=c("#d8456c","#d8456c","#d8456c"))+
+  theme_bw()+
+  stat_n_text() + 
+  scale_x_discrete(labels = c('AA','AC','CC'))+
+  labs(x="NAC D5Y (Chr3:30698039)", y="Harvest date (Julian days)")+
+  scale_y_continuous(limits = c(217,300))+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
+ggsave(date_nac, file = "../figures/date_nac.pdf", width = 8, height = 8, units = "cm")
+
+#make manhattan
+
+#set chromosome names
+chromos <- c(1:17, "R")
+chromos <- as.character(chromos)
+
+date_std_pvals <- read_csv("../multi-gwas/standard_pvals/date_jul_17_harv_std_pvals.csv")
+date_std_pvals <- date_std_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
+
+date_std_pvals$chr <- as.numeric(as.character(date_std_pvals$chr))
+date_std_pvals$bp <- as.numeric(as.character(date_std_pvals$bp))
+
+
+#make chr 0 be chr R
+date_std_pvals[which(date_std_pvals$chr == 0), "chr"] <- 18
+
+date_std_pvals <- date_std_pvals %>% rename(BP = bp, CHR = chr, P=pval, SNP=snp_caller)
+
+date_std_pvals <- date_std_pvals %>% select(BP, CHR, P, SNP)
+
+#load SNPs to highlight
+
+jpeg(file="../figures/date_man.jpeg", width = 800, height=300,  quality = 100)
+manhattan(date_std_pvals, chr = "CHR", bp = "BP", p="P", snp = "SNP", suggestiveline=F, genomewideline=6.625633, chrlabs = chromos, ylim = c(0,50))
+dev.off()
+
+```
+
+
+```{r juicy}
+
+#load in SNP genotypes.
+top_snp_genos <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/top_snp_genos.csv")
+#keep SNPs for NAC.
+nac_snp <- top_snp_genos %>% select(apple_id, nac, nac_alleles)
+
+#load phenotype data
+geno_pheno_meta_data <- read_csv("../outputs/geno_pheno_meta_data.csv")
+nac_pheno <- geno_pheno_meta_data %>% select(apple_id, juiciness_16_harv)
+
+#join pheno data and snp data
+nac_snp <- left_join(nac_snp, nac_pheno, by = "apple_id")
+juicy <- nac_snp %>% select(juiciness_16_harv, nac, nac_alleles) %>% filter(!is.na(juiciness_16_harv))
+
+juicy_nac <- ggplot(juicy, aes(x=factor(nac, levels = c("2", "1", "0")), y=juiciness_16_harv)) + 
+  geom_jitter(aes(colour=as.factor(nac)), position = position_jitterdodge(jitter.width = 1, dodge.width =0.8),stroke=0, alpha = 0.7, size=2, show.legend=FALSE) +
+  stat_summary(fun=median, geom = "crossbar",
+               position = position_dodge(width=0.8),
+               width=0.5,
+               size=0.2,
+               show.legend=FALSE)+
+  scale_colour_manual(values=c("#d8456c","#d8456c","#d8456c"))+
+  theme_bw()+
+  stat_n_text() + 
+  scale_x_discrete(labels = c('AA','AC','CC'))+
+  labs(x="NAC D5Y (Chr3:30698039)", y="Juiciness")+
+  scale_y_continuous(limits = c(-2,25), breaks = c(0,5,10,15, 20, 25))+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
+ggsave(juicy_nac, file = "../figures/juicy_nac.pdf", width = 8, height = 8, units = "cm")
+
+#make manhattan
+#set chromosome names
+chromos <- c(1:17, "R")
+chromos <- as.character(chromos)
+
+juiciness_std_pvals <- read_csv("../multi-gwas/standard_pvals/juiciness_16_harv_std_pvals.csv")
+juiciness_std_pvals <- juiciness_std_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
+
+juiciness_std_pvals$chr <- as.numeric(as.character(juiciness_std_pvals$chr))
+juiciness_std_pvals$bp <- as.numeric(as.character(juiciness_std_pvals$bp))
+
+
+#make chr 0 be chr R
+juiciness_std_pvals[which(juiciness_std_pvals$chr == 0), "chr"] <- 18
+
+juiciness_std_pvals <- juiciness_std_pvals %>% rename(BP = bp, CHR = chr, P=pval, SNP=snp_caller)
+
+juiciness_std_pvals <- juiciness_std_pvals %>% select(BP, CHR, P, SNP)
+
+
+#load SNPs to highlight
+
+jpeg(file="../figures/juicy_man.jpeg", width = 800, height=300,  quality = 100)
+manhattan(juiciness_std_pvals, chr = "CHR", bp = "BP", p="P", snp = "SNP", suggestiveline=F, genomewideline=6.625633, chrlabs = chromos, ylim = c(0,8))
+dev.off()
+
+```
+
+
+```{r firm_harv}
+#load in SNP genotypes.
+top_snp_genos <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/top_snp_genos.csv")
+#keep SNPs for NAC.
+nac_snp <- top_snp_genos %>% select(apple_id, nac, nac_alleles)
+
+#load phenotype data
+geno_pheno_meta_data <- read_csv("../outputs/geno_pheno_meta_data.csv")
+nac_pheno <- geno_pheno_meta_data %>% select(apple_id, firmness_avg_17_harv)
+
+#join pheno data and snp data
+nac_snp <- left_join(nac_snp, nac_pheno, by = "apple_id")
+firm_harv <- nac_snp %>% select(firmness_avg_17_harv, nac, nac_alleles) %>% filter(!is.na(firmness_avg_17_harv))
+
+firm_harv_nac <- ggplot(firm_harv, aes(x=factor(nac, levels = c("2", "1", "0")), y=firmness_avg_17_harv)) +
+  geom_jitter(aes(colour=as.factor(nac)), position = position_jitterdodge(jitter.width = 1, dodge.width =0.8),stroke=0, alpha = 0.7, size=2, show.legend=FALSE) +
+  stat_summary(fun=median, geom = "crossbar",
+               position = position_dodge(width=0.8),
+               width=0.5,
+               size=0.2,
+               show.legend=FALSE)+
+  scale_colour_manual(values=c("#d8456c","#d8456c","#d8456c"))+
+  theme_bw()+
+  stat_n_text() + 
+  scale_x_discrete(labels = c('AA','AC','CC'))+
+  scale_y_continuous(limits = c(0,15))+
+  labs(x="NAC D5Y (Chr3:30698039)", y="Firmness at harvest (kg/cm2)")+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
+ggsave(firm_harv_nac, file = "../figures/firm_harv_nac.pdf", width = 8, height = 8, units = "cm")
+
+#make manhattan
+#set chromosome names
+chromos <- c(1:17, "R")
+chromos <- as.character(chromos)
+
+firmness_std_pvals <- read_csv("../multi-gwas/standard_pvals/firmness_avg_17_harv_std_pvals.csv")
+firmness_std_pvals <- firmness_std_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
+
+firmness_std_pvals$chr <- as.numeric(as.character(firmness_std_pvals$chr))
+firmness_std_pvals$bp <- as.numeric(as.character(firmness_std_pvals$bp))
+
+#make chr 0 be chr R
+firmness_std_pvals[which(firmness_std_pvals$chr == 0), "chr"] <- 18
+
+firmness_std_pvals <- firmness_std_pvals %>% rename(BP = bp, CHR = chr, P=pval, SNP=snp_caller)
+
+firmness_std_pvals <- firmness_std_pvals %>% select(BP, CHR, P, SNP)
+
+
+#load SNPs to highlight
+
+jpeg(file="../figures/firm_harv_man.jpeg", width = 800, height=300,  quality = 100)
+manhattan(firmness_std_pvals, chr = "CHR", bp = "BP", p="P", snp = "SNP", suggestiveline=F, genomewideline=6.625633, chrlabs = chromos, ylim = c(0,25))
+dev.off()
+
+```
+
+
+```{r firm_stor}
+
+#load in SNP genotypes.
+top_snp_genos <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/top_snp_genos.csv")
+#keep SNPs for NAC.
+nac_snp <- top_snp_genos %>% select(apple_id, nac, nac_alleles)
+
+#load phenotype data
+geno_pheno_meta_data <- read_csv("../outputs/geno_pheno_meta_data.csv")
+nac_pheno <- geno_pheno_meta_data %>% select(apple_id, firmness_avg_17_stor)
+
+#join pheno data and snp data
+nac_snp <- left_join(nac_snp, nac_pheno, by = "apple_id")
+firm_stor <- nac_snp %>% select(firmness_avg_17_stor, nac, nac_alleles) %>% filter(!is.na(firmness_avg_17_stor))
+
+
+firm_stor_nac <- ggplot(firm_stor, aes(x=factor(nac, levels = c("2", "1", "0")), y=firmness_avg_17_stor)) +
+  geom_jitter(aes(colour=as.factor(nac)), position = position_jitterdodge(jitter.width = 1, dodge.width =0.8),stroke=0, alpha = 0.7, size=2, show.legend=FALSE) +
+  stat_summary(fun=median, geom = "crossbar",
+               position = position_dodge(width=0.8),
+               width=0.5,
+               size=0.2,
+               show.legend=FALSE)+
+  scale_colour_manual(values=c("#d8456c","#d8456c","#d8456c"))+
+  theme_bw()+
+  stat_n_text() + 
+  scale_x_discrete(labels = c('AA','AC','CC'))+
+  scale_y_continuous(limits = c(0,15))+
+  labs(x="NAC D5Y (Chr3:30698039)", y="Firmness after storage (kg/cm2")+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
+ggsave(firm_stor_nac, file = "../figures/firm_stor_nac.pdf", width = 8, height = 8, units = "cm")
+
+#make manhattan
+#set chromosome names
+chromos <- c(1:17, "R")
+chromos <- as.character(chromos)
+
+firmness_stor_std_pvals <- read_csv("../multi-gwas/standard_pvals/firmness_avg_17_stor_std_pvals.csv")
+firmness_stor_std_pvals <- firmness_stor_std_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
+
+firmness_stor_std_pvals$chr <- as.numeric(as.character(firmness_stor_std_pvals$chr))
+firmness_stor_std_pvals$bp <- as.numeric(as.character(firmness_stor_std_pvals$bp))
+
+#make chr 0 be chr R
+firmness_stor_std_pvals[which(firmness_stor_std_pvals$chr == 0), "chr"] <- 18
+
+firmness_stor_std_pvals <- firmness_stor_std_pvals %>% rename(BP = bp, CHR = chr, P=pval, SNP=snp_caller)
+
+firmness_stor_std_pvals <- firmness_stor_std_pvals %>% select(BP, CHR, P, SNP)
+
+#load SNPs to highlight
+
+jpeg(file="../figures/firm_stor_man.jpeg", width = 800, height=300,  quality = 100)
+manhattan(firmness_stor_std_pvals, chr = "CHR", bp = "BP", p="P", snp = "SNP", suggestiveline=F, genomewideline=6.625633, chrlabs = chromos, ylim=c(0,10))
+dev.off()
+
+```
+
+
+```{r change_brix}
+#load in SNP genotypes.
+top_snp_genos <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/top_snp_genos.csv")
+#keep SNPs for NAC.
+nac_snp <- top_snp_genos %>% select(apple_id, nac, nac_alleles)
+
+#load phenotype data
+geno_pheno_meta_data <- read_csv("../outputs/geno_pheno_meta_data.csv")
+nac_pheno <- geno_pheno_meta_data %>% select(apple_id, percent_brix_17)
+
+#join pheno data and snp data
+nac_snp <- left_join(nac_snp, nac_pheno, by = "apple_id")
+change_brix <- nac_snp %>% select(percent_brix_17, nac, nac_alleles) %>% filter(!is.na(percent_brix_17))
+
+change_brix_nac <- ggplot(change_brix, aes(x=factor(nac, levels = c("2", "1", "0")), y=percent_brix_17)) +
+  geom_jitter(aes(colour=as.factor(nac)), position = position_jitterdodge(jitter.width = 1, dodge.width =0.8),stroke=0, alpha = 0.7, size=2, show.legend=FALSE) +
+  stat_summary(fun=median, geom = "crossbar",
+               position = position_dodge(width=0.8),
+               width=0.5,
+               size=0.2,
+               show.legend=FALSE)+
+  scale_colour_manual(values=c("#d8456c","#d8456c","#d8456c"))+
+  theme_bw()+
+  stat_n_text() + 
+  scale_x_discrete(labels = c('AA','AC','CC'))+
+  scale_y_continuous(limits = c(-65,65),breaks=c(-50, -25, 0, 25, 50))+
+  labs(x="NAC D5Y (Chr3:30698039)", y="Change in SSC during storage (%)")+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
+ggsave(change_brix_nac, file = "../figures/change_brix_nac.pdf", width = 8, height = 8, units = "cm")
+
+#make manhattan
+#set chromosome names
+chromos <- c(1:17, "R")
+chromos <- as.character(chromos)
+
+percent_brix_std_pvals <- read_csv("../multi-gwas/standard_pvals/percent_brix_17_std_pvals.csv")
+percent_brix_std_pvals <- percent_brix_std_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
+
+percent_brix_std_pvals$chr <- as.numeric(as.character(percent_brix_std_pvals$chr))
+percent_brix_std_pvals$bp <- as.numeric(as.character(percent_brix_std_pvals$bp))
+
+#make chr 0 be chr R
+percent_brix_std_pvals[which(percent_brix_std_pvals$chr == 0), "chr"] <- 18
+
+percent_brix_std_pvals <- percent_brix_std_pvals %>% rename(BP = bp, CHR = chr, P=pval, SNP=snp_caller)
+
+percent_brix_std_pvals <- percent_brix_std_pvals %>% select(BP, CHR, P, SNP)
+
+#load SNPs to highlight
+
+jpeg(file="../figures/change_brix_man.jpeg", width = 800, height=300,  quality = 100)
+manhattan(percent_brix_std_pvals, chr = "CHR", bp = "BP", p="P", snp = "SNP", suggestiveline=F, genomewideline=6.625633, chrlabs = chromos, ylim=c(0,25))
+dev.off()
+```
+
+
+```{r brix_stor}
+
+#load in SNP genotypes.
+top_snp_genos <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/top_snp_genos.csv")
+#keep SNPs for NAC.
+nac_snp <- top_snp_genos %>% select(apple_id, nac, nac_alleles)
+
+#load phenotype data
+geno_pheno_meta_data <- read_csv("../outputs/geno_pheno_meta_data.csv")
+nac_pheno <- geno_pheno_meta_data %>% select(apple_id, brix_17_stor)
+
+#join pheno data and snp data
+nac_snp <- left_join(nac_snp, nac_pheno, by = "apple_id")
+brix_stor <- nac_snp %>% select(brix_17_stor, nac, nac_alleles) %>% filter(!is.na(brix_17_stor))
+
+brix_stor_nac <- ggplot(brix_stor, aes(x=factor(nac, levels = c("2", "1", "0")), y=brix_17_stor)) +
+  geom_jitter(aes(colour=as.factor(nac)), position = position_jitterdodge(jitter.width = 1, dodge.width =0.8),stroke=0, alpha = 0.7, size=2, show.legend=FALSE) +
+  stat_summary(fun=median, geom = "crossbar",
+               position = position_dodge(width=0.8),
+               width=0.5,
+               size=0.2,
+               show.legend=FALSE)+
+  scale_colour_manual(values=c("#d8456c","#d8456c","#d8456c"))+
+  theme_bw()+
+  stat_n_text() + 
+  scale_x_discrete(labels = c('AA','AC','CC'))+
+  scale_y_continuous(limits = c(3,25))+
+  labs(x="NAC D5Y (Chr3:30698039)", y="SSC after storage (Brix)")+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
+ggsave(brix_stor_nac, file = "../figures/brix_stor_nac.pdf", width = 8, height = 8, units = "cm")
+
+#make manhattan
+#set chromosome names
+chromos <- c(1:17, "R")
+chromos <- as.character(chromos)
+
+brix_stor_std_pvals <- read_csv("../multi-gwas/standard_pvals/brix_17_stor_std_pvals.csv")
+brix_stor_std_pvals <- brix_stor_std_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
+
+brix_stor_std_pvals$chr <- as.numeric(as.character(brix_stor_std_pvals$chr))
+brix_stor_std_pvals$bp <- as.numeric(as.character(brix_stor_std_pvals$bp))
+
+#make chr 0 be chr R
+brix_stor_std_pvals[which(brix_stor_std_pvals$chr == 0), "chr"] <- 18
+
+brix_stor_std_pvals <- brix_stor_std_pvals %>% rename(BP = bp, CHR = chr, P=pval, SNP=snp_caller)
+
+brix_stor_std_pvals <- brix_stor_std_pvals %>% select(BP, CHR, P, SNP)
+
+#load SNPs to highlight
+jpeg(file="../figures/brix_stor_man.jpeg", width = 800, height=300,  quality = 100)
+manhattan(brix_stor_std_pvals, chr = "CHR", bp = "BP", p="P", snp = "SNP", suggestiveline=F, genomewideline=6.625633, chrlabs = chromos, ylim=c(0,15))
+dev.off()
+```
+
+

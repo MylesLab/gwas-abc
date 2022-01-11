@@ -1,0 +1,14 @@
+chromosome,class,start,stop,annotation
+Chr16,gene,9188150,9192987,ID=gene:MD16G1126200;Name=MD16G1126200;Note=hydroxyproline-rich glycoprotein family protein;Alias=MD16G0111500
+Chr16,gene,9193035,9195896,ID=gene:MD16G1126300;Name=MD16G1126300;Note=Leucine-rich repeat (LRR) family protein
+Chr16,gene,9202789,9205808,ID=gene:MD16G1126400;Name=MD16G1126400;Note=B-box type zinc finger protein with CCT domain
+Chr16,gene,9212660,9212860,ID=gene:MD16G1126500;Name=MD16G1126500;Note=ubiquinol-cytochrome C reductase UQCRX/QCR9-like family protein
+Chr16,gene,9218351,9218464,ID=gene:MD16G1126600;Name=MD16G1126600;rfam_acc=RF00001;rfam_id=5S_rRNA
+Chr16,gene,9224302,9224504,ID=gene:MD16G1126700;Name=MD16G1126700;rfam_acc=RF00865;rfam_id=MIR169_5
+Chr16,gene,9227058,9228642,ID=gene:MD16G1126800;Name=MD16G1126800;Note=Protein of unknown function
+Chr16,gene,9236538,9238380,ID=gene:MD16G1126900;Name=MD16G1126900;Note=Protein of unknown function
+Chr16,gene,9243478,9245018,ID=gene:MD16G1127000;Name=MD16G1127000;Note=Protein of unknown function
+Chr16,gene,9245059,9246171,ID=gene:MD16G1127100;Name=MD16G1127100;Note=GRAM domain family protein
+Chr16,gene,9248716,9250310,ID=gene:MD16G1127200;Name=MD16G1127200
+Chr16,gene,9254653,9256581,ID=gene:MD16G1127300;Name=MD16G1127300;Note=Uncharacterised conserved protein UCP015417
+Chr16,gene,9274777,9277069,ID=gene:MD16G1127400;Name=MD16G1127400;Note=jasmonate-zim-domain protein 10

@@ -1,0 +1,6 @@
+chromosome,class,start,stop,annotation
+Chr03,gene,30653663,30660855,ID=gene:MD03G1222300;Name=MD03G1222300;Note=Cyclophilin-like peptidyl-prolyl cis-trans isomerase family protein
+Chr03,gene,30669574,30673758,ID=gene:MD03G1222400;Name=MD03G1222400;Note=Peroxisomal membrane 22 kDa (Mpv17/PMP22) family protein
+Chr03,gene,30676958,30677290,ID=gene:MD03G1222500;Name=MD03G1222500;Note=Protein of unknown function
+Chr03,gene,30696191,30698216,ID=gene:MD03G1222600;Name=MD03G1222600;Note=NAC domain containing protein  2
+Chr03,gene,30738599,30740479,ID=gene:MD03G1222700;Name=MD03G1222700;Note=NAC (No Apical Meristem) domain transcriptional regulator superfamily protein

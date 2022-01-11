@@ -1,0 +1,20 @@
+chromosome,class,start,stop,annotation
+Chr15,gene,3758982,3761230,ID=gene:MD15G1055700;Name=MD15G1055700;Note=S-adenosyl-L-methionine-dependent methyltransferases superfamily protein
+Chr15,gene,3761233,3762834,ID=gene:MD15G1055800;Name=MD15G1055800;Note=S-adenosyl-L-methionine-dependent methyltransferases superfamily protein
+Chr15,gene,3764503,3764589,ID=gene:MD15G1055900;Name=MD15G1055900;rfam_acc=RF00073;rfam_id=mir-156
+Chr15,gene,3773823,3775225,ID=gene:MD15G1056000;Name=MD15G1056000;Note=S-adenosyl-L-methionine-dependent methyltransferases superfamily protein
+Chr15,gene,3779285,3780232,ID=gene:MD15G1056100;Name=MD15G1056100
+Chr15,gene,3782846,3782932,ID=gene:MD15G1056200;Name=MD15G1056200;rfam_acc=RF00073;rfam_id=mir-156
+Chr15,gene,3797937,3799061,ID=gene:MD15G1056300;Name=MD15G1056300;Note=eukaryotic translation initiation factor 4A1
+Chr15,gene,3799063,3799584,ID=gene:MD15G1056400;Name=MD15G1056400;Note=eif4a-2
+Chr15,gene,3799749,3800096,ID=gene:MD15G1056500;Name=MD15G1056500;Note=eif4a-2
+Chr15,gene,3801987,3802443,ID=gene:MD15G1056600;Name=MD15G1056600;Note=Protein of unknown function (DUF3511)
+Chr15,gene,3807750,3810673,ID=gene:MD15G1056700;Name=MD15G1056700;Note=Protein of unknown function (DUF803)
+Chr15,gene,3811960,3814450,ID=gene:MD15G1056800;Name=MD15G1056800;Note=Putative lysine decarboxylase family protein
+Chr15,gene,3822811,3823575,ID=gene:MD15G1056900;Name=MD15G1056900;Note=Protein of unknown function
+Chr15,gene,3825787,3828691,ID=gene:MD15G1057000;Name=MD15G1057000;Note=Mitochondrial substrate carrier family protein
+Chr15,gene,3829730,3831766,ID=gene:MD15G1057100;Name=MD15G1057100;Note=Toll-Interleukin-Resistance (TIR) domain family protein
+Chr15,gene,3833976,3836567,ID=gene:MD15G1057200;Name=MD15G1057200;Note=calmodulin-binding family protein
+Chr15,gene,3840989,3844576,ID=gene:MD15G1057300;Name=MD15G1057300;Note=calmodulin-binding family protein
+Chr15,gene,3848301,3850776,ID=gene:MD15G1057400;Name=MD15G1057400;Note=IQ-domain 6
+Chr15,gene,3850899,3853453,ID=gene:MD15G1057500;Name=MD15G1057500;Note=cytochrome P450

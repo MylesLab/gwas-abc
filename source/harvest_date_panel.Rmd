@@ -1,0 +1,136 @@
+---
+title: "harvest_date_panel"
+author: "Sophie Watts"
+date: "15/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+library(tidyverse)
+library(patchwork)
+library(qqman)
+library(scales)
+library(cowplot)
+
+```
+
+
+
+```{r boxplot}
+#load in SNP genotypes.
+top_snp_genos <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/top_snp_genos.csv")
+#keep SNPs for nac
+nac_snp <- top_snp_genos %>% select(apple_id, nac, nac_alleles)
+
+#load phenotype data
+geno_pheno_meta_data <- read_csv("../outputs/geno_pheno_meta_data.csv")
+nac_pheno <- geno_pheno_meta_data %>% select(apple_id, date_jul_17_harv)
+
+#join pheno data and snp data
+nac_snp <- left_join(nac_snp, nac_pheno, by = "apple_id")
+
+date <- nac_snp %>% select(date_jul_17_harv, nac, nac_alleles) %>% filter(!is.na(date_jul_17_harv))
+
+date_nac <- ggplot(date, aes(x=factor(nac, levels = c("2", "1", "0")), y=date_jul_17_harv)) + 
+  geom_jitter(aes(colour=as.factor(nac)), position = position_jitterdodge(jitter.width = 1, dodge.width =0.8),stroke=0, alpha = 0.7, size=2, show.legend=FALSE) +
+  stat_summary(fun=median, geom = "crossbar",
+               position = position_dodge(width=0.8),
+               width=0.5,
+               size=0.2,
+               show.legend=FALSE)+
+  scale_colour_manual(values=c("#d8456c","#d8456c","#d8456c"))+
+  theme_bw()+
+  stat_n_text() + 
+  scale_x_discrete(labels = c('AA','AC','CC'))+
+  labs(x="NAC D5Y (Chr3:30698039)", y="Harvest date (Julian date)")+
+  scale_y_continuous(limits = c(217,300))+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
+
+```
+
+
+```{r manhattan}
+
+#set chromosome names
+chromos <- c(1:17, "R")
+chromos <- as.character(chromos)
+
+date_std_pvals <- read_csv("../multi-gwas/standard_pvals/date_jul_17_harv_std_pvals.csv")
+date_std_pvals <- date_std_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
+
+date_std_pvals$chr <- as.numeric(as.character(date_std_pvals$chr))
+date_std_pvals$bp <- as.numeric(as.character(date_std_pvals$bp))
+
+
+#make chr 0 be chr R
+date_std_pvals[which(date_std_pvals$chr == 0), "chr"] <- 18
+
+date_std_pvals <- date_std_pvals %>% rename(BP = bp, CHR = chr, P=pval, SNP=snp_caller)
+
+date_std_pvals <- date_std_pvals %>% select(BP, CHR, P, SNP)
+
+
+max_p <- -log10(min(date_std_pvals$P)*0.1)
+
+#load SNPs to highlight
+
+jpeg(file="../figures/date_man.jpeg", width = 700, height =350, quality = 100)
+manhattan(date_std_pvals, chr = "CHR", bp = "BP", p="P", snp = "SNP", suggestiveline=F, genomewideline=6.625633, chrlabs = chromos, ylim = c(0,50))
+dev.off()
+
+
+
+
+```
+
+
+
+```{r zoom}
+#load SNP p-values
+date_std_pvals <- read_csv("../multi-gwas/standard_pvals/date_jul_17_harv_std_pvals.csv")
+date_mlmm_pvals <- read_csv("../multi-gwas/mlmm_pvals/date_jul_17_harv_mlmm_pvals.csv")
+
+date_std_pvals <- date_std_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
+
+date_std_pvals$chr <- as.numeric(as.character(date_std_pvals$chr))
+date_std_pvals$bp <- as.numeric(as.character(date_std_pvals$bp))
+
+#change to -log10 p-values
+date_std_pvals <- date_std_pvals %>% mutate(log_pval = -log10(pval))
+
+#filter for chromosome 3 and region, 2.5 MB either side of 30,698,039
+date_3 <- date_std_pvals %>% filter(chr == 3)
+date_3 <- date_3 %>% filter(bp >= 28198039)
+date_3 <- date_3 %>% filter(bp <= 33198039)
+
+#pick out the top mlmm markers
+mlmm_top_3 <- date_3 %>% filter(bp == 30698039)
+
+
+zoom_chr3_date <- ggplot(date_3, aes(x=bp, y=log_pval))+
+  geom_point(size=2, alpha=0.6, stroke=0)+
+  geom_point(data=mlmm_top_3, 
+             aes(x=bp,y=log_pval), 
+             color="#d8456c",
+             size=2,
+             stroke=0)+
+  labs(x="Chromosome 3 (Mb)", y="-log10(p)")+
+  scale_y_continuous(limits = c(0,50))+
+  scale_x_continuous(labels = c("2.8", "2.9", "3.0", "3.1", "3.2", "3.3"))+
+  theme_bw()+
+  geom_hline(yintercept=6.625633, linetype="dashed")+
+  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title = element_text(face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
+
+```
+
+
+```{r zoom}
+
+date_combined <- zoom_chr3_date + date_nac
+
+ggsave(date_combined, file = "../figures/date_combined.pdf", width = 5, height = 5, units = "in")
+
+
+```
+
