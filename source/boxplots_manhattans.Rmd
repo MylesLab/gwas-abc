@@ -26,7 +26,7 @@ nac_snp <- top_snp_genos %>% select(apple_id, nac, nac_alleles)
 
 #load phenotype data
 geno_pheno_meta_data <- read_csv("../outputs/geno_pheno_meta_data.csv")
-nac_pheno <- geno_pheno_meta_data %>% select(apple_id, date_jul_17_harv)
+nac_pheno <- geno_pheno_meta_data %>% select(PLANTID, apple_id, date_jul_17_harv)
 
 #join pheno data and snp data
 nac_snp <- left_join(nac_snp, nac_pheno, by = "apple_id")
