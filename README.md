@@ -117,38 +117,20 @@
 ## Table of contents
 
 1. [About](#1-about) </br>
-2. [Abstract](#2-abstract) <br />
-3. [Figures](#3-figures) <br />
-3a. [Figure 1](#3a-figure-1) <br />
-3b. [Figure 2](#3b-figure-2) <br />
-4. [Analysis](#4-analysis) <br />
-4a. [File Architecture](#4a-file-architecture) <br />
-4b. [Getting the code](#4b-getting-the-code) <br />
-4c. [Dependencies](#4c-dependencies) <br />
-4d. [Reproducing the results](#4d-reproducing-the-results) <br />
+2. [Abstract](#2-abstract) </br>
+3. [Analysis](#4-analysis) </br>
+3a. [File Architecture](#4a-file-architecture) <br />
+3b. [Getting the code](#4b-getting-the-code) <br />
+3c. [Dependencies](#4c-dependencies) <br />
+3d. [Reproducing the results](#4d-reproducing-the-results) <br />
 
 ## 1. About
-This repository contains data and scripts used to repoduce analyses in the manuscript "Quantifying the differences between cider and dessert apples".
+This repository contains data and scripts used to repoduce analyses in the manuscript "Genome-wide association studies in Canada's apple biodiversity collection".
 
 ## 2. Abstract
-## 3. Figures
-### 3a. Figure 1
 
-| Principal Component Analysis and distance analysis of various phenotypes in commonly grown English and French cider varieties, and dessert varieties.  |
-| ------------- |
-| ![Figure1](https://user-images.githubusercontent.com/19979068/153270731-c35e0cfb-15c5-4dd3-8dbf-258d641364f8.png)  |
-| <b>Principal Component Analysis and distance analysis of various phenotypes in commonly grown English and French cider varieties, and dessert varieties.</b> <b>A)</b> Biplot of PC1 vs PC2. <b>B,C)</b> The difference between Dessert and Cider (English & French) varieties along the PC1 and PC2 is shown in violin and boxplots. The p-values on top are the output of Wilcoxon Ranked Sum Test. <b>D)</b> Density plot for pairwise Euclidean distances for English cider and French cider vs. dessert apples, and within dessert apples. <b>E)</b> Scatter plot shows the average Euclidean distance of each of the dessert apples from English cider (x-axis) and French cider (y-axis) apple varieties.  |
-
-### 3b. Figure 2
-
-| Density plots for various phenotypes across English cider apples, French cider apples, and dessert apples. The x-axis shows the phenotype associated with each of the apple types. |
-| ------------- |
-| ![Figure2](https://user-images.githubusercontent.com/19979068/153272291-c055d4d3-334f-4653-a974-8d2a3415f83f.png)  |
-| Density plots for various phenotypes across English cider apples, French cider apples, and dessert apples. The x-axis shows the phenotype associated with each of the apple types. |
-
-
-## 4. Analysis
-### 4a. File architecture
+## 3. Analysis
+### 3a. File architecture
 
 ```
 ├── analyses
@@ -171,32 +153,25 @@ This repository contains data and scripts used to repoduce analyses in the manus
 - The `figures` directory contains the intermediary and the final figures generated for this project. 
 
 
-### 4b. Getting the code
+### 3b. Getting the code
 
 You can download a copy of all the files in this repository by cloning the git repository:
 
 ```sh
-$ git clone https://github.com/MylesLab/cider-vs-dessert.git
+$ git clone https://github.com/MylesLab/abc-gwas.git
 ```
 
-### 4c. Dependencies
+### 3c. Dependencies
 
-All the code is written purely in R and the library dependencies for running the code are enumerated below:
+The library dependencies for running the R code are below:
 
 ```
-GGally
-emma
-mlmm
-patchwork
-qqman
-readxl
-scales
 tidyverse
 viridis
 
 ```
 
-### 4d. Reproducing the results
+### 3d. Reproducing the results
 
 Given that you have above dependencies installed in your working machine, you should be able to run any of the code in this repository. However, in order to reproduce the analyses and obtain the same results, here is the list and order of the scripts you should run:
 
