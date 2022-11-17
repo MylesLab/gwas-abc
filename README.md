@@ -133,24 +133,16 @@ This repository contains data and scripts used to repoduce analyses in the manus
 ### 3a. File architecture
 
 ```
-├── analyses
 ├── data
-│   ├── processed
-│   └── raw
-├── data_curation
-├── figures
-│   ├── density
-│   ├── distance
-│   ├── final_figures
-│   ├── missing_data
-│   └── pca
-└── themes
+├── source
+├── outputs
+└── figures
 ```
 
-- The `data` directory contains all the data that was used for this analysis.
-- The `data_curation` directory contains the scripts generated to generate the final curated dataset.
-- The `analyses` directory contains the scripts generated for performing various analyses of this project
-- The `figures` directory contains the intermediary and the final figures generated for this project. 
+- The `data` directory contains all the raw data that was used for this project.
+- The `outputs` directory contains the files generated from the raw data through data curation.
+- The `source` directory contains the scripts used for data curation and performing various analyses of this project.
+- The `figures` directory contains the intermediary figures generated for this project. Final figures were assembled using Adobe Illustrator. 
 
 
 ### 3b. Getting the code
