@@ -31,6 +31,10 @@ geno_samples <- geno_samples$X1
 
 #filter phenotype
 pheno_data <- pheno_data %>% filter(apple_id %in% geno_samples)
+#1054 accession with phenotype and genotype data.
+
+#remove the FRAP column as it is highly correlated with TPC
+pheno_data <- pheno_data %>% select(-frap)
 
 write.csv(pheno_data, file = "../outputs/geno_pheno_meta_data.csv", quote = F, row.names = F)
 

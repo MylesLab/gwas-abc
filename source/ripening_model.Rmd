@@ -25,15 +25,22 @@ nac_data <- nac_data %>% select(apple_id, nac_alleles)
 #load phenotype date
 pheno_data <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/geno_pheno_meta_data.csv")
 
-pheno_data <- pheno_data %>% select(apple_id, brix_17_harv, brix_17_stor, firmness_avg_17_harv, firmness_avg_17_stor, date_jul_17_harv)
+pheno_data <- pheno_data %>% select(apple_id, brix_17_harv, brix_17_stor, percent_brix_17, firmness_avg_17_harv, firmness_avg_17_stor, percent_firmness_avg_17, date_jul_17_harv)
 
 nac_pheno_data <- left_join(nac_data, pheno_data, by = "apple_id")
 
 median_summary <- nac_pheno_data %>%
   group_by(nac_alleles) %>%
-  summarise(firm_harv = median(firmness_avg_17_harv, na.rm = T), firm_stor = median(firmness_avg_17_stor, na.rm = T), brix_harv = median(brix_17_harv, na.rm = T), brix_stor = median(brix_17_stor, na.rm = T), harv_date = median(date_jul_17_harv, na.rm = T))
+  summarise(firm_harv = median(firmness_avg_17_harv, na.rm = T),
+            firm_stor = median(firmness_avg_17_stor, na.rm = T),
+            change_firm = median(percent_firmness_avg_17, na.rm = T),
+            brix_harv = median(brix_17_harv, na.rm = T),
+            brix_stor = median(brix_17_stor, na.rm = T),
+            change_brix = median(percent_brix_17, na.rm = T),
+            harv_date = median(date_jul_17_harv, na.rm = T))
 
 median_summary <- median_summary %>% mutate(stor_date = harv_date + 90)
+write.csv(median_summary,file = "../outputs/ripening_model_summary.csv", quote = F, row.names = F)
 
 #make table for brix
 brix_at_harvest <- median_summary %>% select(nac_alleles, brix_harv, harv_date) %>% rename(brix = brix_harv, date = harv_date)

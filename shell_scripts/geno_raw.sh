@@ -1,9 +1,3 @@
-#!/bin/bash
-#SBATCH --time=24:00:00
-#SBATCH --mem=64G
-#SBATCH --output=geno_raw.out
-#SBATCH --job-name=geno_raw
-
 /project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file /project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/acidity_16_stor_geno_filtered --out /project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/geno_raw/acidity_16_stor_geno_filtered --recode A
 /project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file /project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/brix_16_stor_geno_filtered --out /project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/geno_raw/brix_16_stor_geno_filtered --recode A
 /project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file /project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/weight_avg_16_stor_geno_filtered --out /project/6003429/myles_lab/abc_gwas/big_gwas_analysis/gwas/genotype_data/geno_raw/weight_avg_16_stor_geno_filtered --recode A

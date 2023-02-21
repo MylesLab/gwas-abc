@@ -1,0 +1,169 @@
+---
+title: "snp_variance"
+output: html_document
+date: "2022-12-19"
+---
+
+```{r set up}
+library(tidyverse)
+library(patchwork)
+
+
+#load in SNP genotypes.
+top_snp_genos <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/top_snp_genos.csv")
+
+#keep columns with numeric alleles.
+top_snp_genos <- top_snp_genos %>% select(apple_id, nac, pg1, soft_top_chr10, tpc_top_chr15, tpc_2nd_chr16, firm_stor_top_chr16)
+
+#load phenotype data
+pheno_meta_data <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/geno_pheno_meta_data.csv")
+pheno_meta_data <- pheno_meta_data %>% select(apple_id, date_jul_17_harv, juiciness_16_harv, firmness_avg_17_harv, firmness_avg_17_stor, percent_brix_17, brix_17_stor, tpc, percent_firmness_avg_17)
+
+#join pheno data and snp data
+snps_pheno <- left_join(top_snp_genos, pheno_meta_data, by = "apple_id")
+
+#load PCS
+pcs <- read_delim("../data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs_pruned1.txt", 
+    delim = "\t", escape_double = FALSE, 
+    trim_ws = TRUE, skip = 2)
+
+#join pheno data and snp data
+top_snps_pheno_pcs <- left_join(snps_pheno, pcs, by = c("apple_id" = "Taxa"))
+
+write_csv(top_snps_pheno_pcs, file = "outputs/top_snps_pheno_pcs.csv", quote = "none")
+
+```
+
+
+```{r softening}
+
+top_snps_pheno_pcs <- read_csv("../outputs/top_snps_pheno_pcs.csv")
+
+#correlation of top gwas snp with PCS
+top_soft_pcs <-data.frame()
+top_soft_pcs<-rbind(top_soft_pcs, summary(lm(percent_firmness_avg_17 ~ PC1 + PC2 + PC3 + PC4 + PC5, data=top_snps_pheno_pcs))$adj.r.squared)
+top_soft_pcs<-rbind(top_soft_pcs, summary(lm(percent_firmness_avg_17 ~ PC1 + PC2 + PC3 + PC4 + PC5 + soft_top_chr10, data=top_snps_pheno_pcs))$adj.r.squared)
+colnames(top_soft_pcs)<-"rsq_top_soft"
+top_soft_pcs$PC <- c(1,2)
+
+#correlation of PG1 and PCS
+pg1_pcs <- data.frame()
+pg1_pcs<-rbind(pg1_pcs, summary(lm(percent_firmness_avg_17 ~ PC1 + PC2 + PC3 + PC4 + PC5, data=top_snps_pheno_pcs))$adj.r.squared)
+pg1_pcs<-rbind(pg1_pcs, summary(lm(percent_firmness_avg_17 ~ PC1 + PC2 + PC3 + PC4 + PC5 + pg1, data=top_snps_pheno_pcs))$adj.r.squared)
+colnames(pg1_pcs)<-"rsq_pg1"
+pg1_pcs$PC <- c(1,2)
+
+snp_variation <- full_join(top_soft_pcs, pg1_pcs, by = "PC")
+
+snp_variation <- snp_variation[,c(2,1,3)]
+
+```
+
+
+```{r phenolics}
+
+#correlation of chr16 snp with PCS
+chr16_pcs <-data.frame()
+chr16_pcs<-rbind(chr16_pcs, summary(lm(tpc ~ PC1 + PC2 + PC3 + PC4 + PC5, data=top_snps_pheno_pcs))$adj.r.squared)
+chr16_pcs<-rbind(chr16_pcs, summary(lm(tpc ~ PC1 + PC2 + PC3 + PC4 + PC5 + tpc_2nd_chr16, data=top_snps_pheno_pcs))$adj.r.squared)
+colnames(chr16_pcs)<-"rsq_chr16_pcs"
+chr16_pcs$PC <- c(1,2)
+
+#correlation of chr15 snp and PCS
+chr15_pcs <-data.frame()
+chr15_pcs<-rbind(chr15_pcs, summary(lm(tpc ~ PC1 + PC2 + PC3 + PC4 + PC5, data=top_snps_pheno_pcs))$adj.r.squared)
+chr15_pcs<-rbind(chr15_pcs, summary(lm(tpc ~ PC1 + PC2 + PC3 + PC4 + PC5 + tpc_top_chr15, data=top_snps_pheno_pcs))$adj.r.squared)
+colnames(chr15_pcs)<-"rsq_chr15_pcs"
+chr15_pcs$PC <- c(1,2)
+
+snp_variation <- full_join(snp_variation, chr16_pcs, by = "PC")
+snp_variation <- full_join(snp_variation, chr15_pcs, by = "PC")
+
+
+```
+
+
+```{r harvest_date}
+
+
+#correlation of NAC snp with PCS
+nac_harv_pcs <-data.frame()
+nac_harv_pcs<-rbind(nac_harv_pcs, summary(lm(date_jul_17_harv ~ PC1 + PC2 + PC3 + PC4 + PC5, data=top_snps_pheno_pcs))$adj.r.squared)
+nac_harv_pcs<-rbind(nac_harv_pcs, summary(lm(date_jul_17_harv ~ PC1 + PC2 + PC3 + PC4 + PC5 + nac, data=top_snps_pheno_pcs))$adj.r.squared)
+colnames(nac_harv_pcs)<-"rsq_nac_harv_pcs"
+nac_harv_pcs$PC <- c(1,2)
+
+snp_variation <- full_join(snp_variation, nac_harv_pcs, by = "PC")
+
+
+```
+
+
+```{r juiciness}
+
+nac_juice_pcs <-data.frame()
+nac_juice_pcs<-rbind(nac_juice_pcs, summary(lm(juiciness_16_harv ~ PC1 + PC2 + PC3 + PC4 + PC5, data=top_snps_pheno_pcs))$adj.r.squared)
+nac_juice_pcs<-rbind(nac_juice_pcs, summary(lm(juiciness_16_harv ~ PC1 + PC2 + PC3 + PC4 + PC5 + nac, data=top_snps_pheno_pcs))$adj.r.squared)
+colnames(nac_juice_pcs)<-"rsq_nac_juice_pcs"
+nac_juice_pcs$PC <- c(1,2)
+
+snp_variation <- full_join(snp_variation, nac_juice_pcs, by = "PC")
+
+```
+
+
+```{r firm_harv}
+
+firm_harv_pcs <-data.frame()
+firm_harv_pcs<-rbind(firm_harv_pcs, summary(lm(firmness_avg_17_harv ~ PC1 + PC2 + PC3 + PC4 + PC5, data=top_snps_pheno_pcs))$adj.r.squared)
+firm_harv_pcs<-rbind(firm_harv_pcs, summary(lm(firmness_avg_17_harv ~ PC1 + PC2 + PC3 + PC4 + PC5 + nac, data=top_snps_pheno_pcs))$adj.r.squared)
+colnames(firm_harv_pcs)<-"rsq_firm_harv_pcs"
+firm_harv_pcs$PC <- c(1,2)
+
+snp_variation <- full_join(snp_variation, firm_harv_pcs, by = "PC")
+
+```
+
+
+```{r firm_stor}
+
+firm_stor_pcs <-data.frame()
+firm_stor_pcs<-rbind(firm_stor_pcs, summary(lm(firmness_avg_17_stor ~ PC1 + PC2 + PC3 + PC4 + PC5, data=top_snps_pheno_pcs))$adj.r.squared)
+firm_stor_pcs<-rbind(firm_stor_pcs, summary(lm(firmness_avg_17_stor ~ PC1 + PC2 + PC3 + PC4 + PC5 + nac, data=top_snps_pheno_pcs))$adj.r.squared)
+colnames(firm_stor_pcs)<-"rsq_firm_stor_pcs"
+firm_stor_pcs$PC <- c(1,2)
+
+snp_variation <- full_join(snp_variation, firm_stor_pcs, by = "PC")
+
+
+```
+
+
+```{r change_ssc}
+
+change_ssc_pcs <-data.frame()
+change_ssc_pcs<-rbind(change_ssc_pcs, summary(lm(percent_brix_17 ~ PC1 + PC2 + PC3 + PC4 + PC5, data=top_snps_pheno_pcs))$adj.r.squared)
+change_ssc_pcs<-rbind(change_ssc_pcs, summary(lm(percent_brix_17 ~ PC1 + PC2 + PC3 + PC4 + PC5 + nac, data=top_snps_pheno_pcs))$adj.r.squared)
+colnames(change_ssc_pcs)<-"rsq_change_ssc_pcs"
+change_ssc_pcs$PC <- c(1,2)
+
+snp_variation <- full_join(snp_variation, change_ssc_pcs, by = "PC")
+
+```
+
+
+```{r ssc_stor}
+
+ssc_stor_pcs <-data.frame()
+ssc_stor_pcs<-rbind(ssc_stor_pcs, summary(lm(brix_17_stor ~ PC1 + PC2 + PC3 + PC4 + PC5, data=top_snps_pheno_pcs))$adj.r.squared)
+ssc_stor_pcs<-rbind(ssc_stor_pcs, summary(lm(brix_17_stor ~ PC1 + PC2 + PC3 + PC4 + PC5 + nac, data=top_snps_pheno_pcs))$adj.r.squared)
+colnames(ssc_stor_pcs)<-"rsq_ssc_stor_pcs"
+ssc_stor_pcs$PC <- c(1,2)
+
+snp_variation <- full_join(snp_variation, ssc_stor_pcs, by = "PC")
+
+#save
+write_csv(snp_variation, file = "../outputs/snp_variation.csv", quote = "none")
+
+```
+

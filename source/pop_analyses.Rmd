@@ -16,7 +16,7 @@ library(patchwork)
 
 ```{r tassel_pca}
 #remove unanchored SNPs
-snps <- read_table2("data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001.frq")
+snps <- read_table2("../data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001.frq")
 snps <- snps %>% filter(CHR == 0) %>% select(SNP)
 #save file to be excluded using PLINK
 write.table(snps, "outputs/contig_snps_remove.txt", sep = "\t", row.names = F, col.names = F, quote = F)
@@ -39,6 +39,7 @@ write.table(snps, "outputs/contig_snps_remove.txt", sep = "\t", row.names = F, c
 #Principal components analysis.
 
 ```{r pca}
+#See ../shell_scripts/abc_pca.sh for the commands used to run PCA with TASSEL.
 
 #load tassel pca output
 abc_pcs <- read_table2("../data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs_pruned1.txt", 
@@ -91,7 +92,7 @@ ggsave("../figures/pca_species.pdf", plot = pca_species)
 ```{r pheno_pc_correlations}
 
 #remove sylvestris and hybrid (this will also remove 3 accessions that are NA for species)
-pcs_pheno <- pcs_pheno %>% mutate(bin_species = species)
+#pcs_pheno <- pcs_pheno %>% mutate(bin_species = species)
 
 #Make species, use and world phenotype binary.
 pcs_pheno <- pcs_pheno %>%
@@ -99,13 +100,12 @@ pcs_pheno <- pcs_pheno %>%
   species == "sieversii"  ~ 0,
   species == "domestica"  ~ 1))
 
+#make wild, crab and rootstock accession NA.
+
 pcs_pheno <- pcs_pheno %>%
   mutate(bin_use = case_when(
   use == "cider"  ~ 0,
-  use == "dessert"  ~ 1,
-  use == "crab"  ~ 2,
-  use == "wild" ~3,
-  use == "rootstock" ~4))
+  use == "dessert"  ~ 1))
 
 pcs_pheno <- pcs_pheno %>%
   mutate(bin_world = case_when(
@@ -113,8 +113,9 @@ pcs_pheno <- pcs_pheno %>%
   world == "new"  ~ 1))
 
 #Correlate PC1 with phenotypes
+#we only want phenotypes from 2017 (pheno_list_2017.txt)
 
-pheno_cor_pc1 <- select(pcs_pheno,PC1, release_year:bin_world) %>% mutate_all(as.numeric)
+pheno_cor_pc1 <- pcs_pheno %>% select(PC1, juiciness_16_harv, flowering_jul_16_harv, precocity_16_harv, acidity_17_stor, brix_17_stor, weight_avg_17_stor, firmness_avg_17_stor, brix_acid_17_stor, brix_17_harv, acidity_17_harv, date_jul_17_harv, firmness_avg_17_harv, weight_avg_17_harv, brix_acid_17_harv, percent_acidity_17, percent_brix_17, percent_weight_avg_17, percent_firmness_avg_17, percent_brix_acid_17, tpc, time_ripen_2017, bin_species, bin_world, bin_use) %>% mutate_all(as.numeric)
 
 pheno_cor_pc1 <- as.matrix(pheno_cor_pc1)
 
@@ -135,11 +136,11 @@ pc1_vs_phenos <- pc1_vs_phenos %>% arrange(desc(r2))
 
 pc1_vs_phenos <- pc1_vs_phenos %>% rename(trait = V1)
 
-write.csv(pc1_vs_phenos,file = "../outputs/pc1_vs_phenos.csv", quote = F, row.names = F)
+write.csv(pc1_vs_phenos,file = "../outputs/new_pc1_vs_phenos.csv", quote = F, row.names = F)
 
 #Correlate PC2 with phenotypes
 
-pheno_cor_pc2 <- select(pcs_pheno,PC2, release_year:bin_world) %>% mutate_all(as.numeric)
+pheno_cor_pc2 <- pcs_pheno %>% select(PC2, juiciness_16_harv, flowering_jul_16_harv, precocity_16_harv, acidity_17_stor, brix_17_stor, weight_avg_17_stor, firmness_avg_17_stor, brix_acid_17_stor, brix_17_harv, acidity_17_harv, date_jul_17_harv, firmness_avg_17_harv, weight_avg_17_harv, brix_acid_17_harv, percent_acidity_17, percent_brix_17, percent_weight_avg_17, percent_firmness_avg_17, percent_brix_acid_17, tpc, time_ripen_2017, bin_species, bin_world, bin_use) %>% mutate_all(as.numeric)
 
 pheno_cor_pc2 <- as.matrix(pheno_cor_pc2)
 
@@ -209,16 +210,6 @@ figure_1 <- pca_species/(species_pc1_boxplot | harvest_date_pc2) + plot_annotati
 
 ggsave("../figures/figure_1.pdf", plot = figure_1, width = 10, height = 10)
 
-```
-
-#LD decay curve.
-
-```{r LD decay}
-
-/project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs --out abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs_ld --r2 --ld-window-kb 1000 --ld-window-r2 0
-
-#calculate background LD
-/project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs --out abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_noctgs_back_ld --r2 inter-chr --thin 0.01 --ld-window-r2 0
-
+`
 ```
 

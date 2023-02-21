@@ -1,0 +1,25 @@
+Trait,R-square,p-value
+Species,0.622,1.20E-220
+Weight at harvest,0.197,1.17E-38
+Flowering date,0.186,2.99E-45
+Harvest date,0.179,5.08E-35
+Weight after storage,0.144,4.15E-17
+Time to ripen,0.144,2.07E-26
+Acidity at harvest,0.118,2.33E-21
+Geographic origin,0.112,8.35E-27
+Phenolic cotent,0.0993,6.45E-10
+SSC after storage,0.082,1.62E-10
+Change in SSC during storage,0.074,2.00E-09
+Acidity after storage,0.0492,6.60E-06
+Juiciness,0.0312,0.001213405
+Change in firmness during storage,0.0257,0.012252624
+SSC/acid ratio after storage,0.0241,0.01105551
+SSC/acid at harvest,0.0212,0.001893279
+Firmness after storage,0.0185,0.091507086
+SSC at harvest,0.00852,0.38325442
+Change in acidity during storage,0.00744,1.985508405
+Change in SSC/acid during storage,0.00587,3.280256715
+Firmness at harvest,0.00417,2.858860825
+Use,0.0027,5.551949912
+Precocity,0.00239,4.904804874
+Change in weight during storage,0.00131,17.88891691

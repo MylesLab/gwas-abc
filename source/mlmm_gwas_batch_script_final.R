@@ -1,4 +1,4 @@
-#Running the MLMM again to make pdf manhattan plots that are sized correctly both as jpegs and pdfs. I am outputting the directory to "mlmm_gwas_final".
+#Running the MLMM again to make pdf manhattan plots that are sized correctly both as jpegs and pdfs. 
 
 args = commandArgs(trailingOnly = TRUE)
 pheno_arg =args[1]

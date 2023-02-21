@@ -1,0 +1,13 @@
+chromosome,class,start,stop,annotation
+Chr16,gene,5207839,5210783,ID=gene:MD16G1074600;Name=MD16G1074600;Note=cullin 3
+Chr16,gene,5215947,5218197,ID=gene:MD16G1074700;Name=MD16G1074700;Note=Mog1/PsbP/DUF1795-like photosystem II reaction center PsbP family protein
+Chr16,gene,5227692,5228900,ID=gene:MD16G1074800;Name=MD16G1074800;Note=TCP family transcription factor
+Chr16,gene,5234899,5236313,ID=gene:MD16G1074900;Name=MD16G1074900;Note=HVA22 homologue C
+Chr16,gene,5239019,5245312,ID=gene:MD16G1075000;Name=MD16G1075000;Note=Regulator of chromosome condensation (RCC1) family with FYVE zinc finger domain
+Chr16,gene,5245394,5248849,ID=gene:MD16G1075100;Name=MD16G1075100;Note=mucin-related
+Chr16,gene,5261502,5262086,ID=gene:MD16G1075200;Name=MD16G1075200;Note=Protein of unknown function
+Chr16,gene,5272363,5274569,ID=gene:MD16G1075300;Name=MD16G1075300;Note=Galactose oxidase/kelch repeat superfamily protein
+Chr16,gene,5275735,5275853,ID=gene:MD16G1075400;Name=MD16G1075400;rfam_acc=RF00001;rfam_id=5S_rRNA
+Chr16,gene,5276101,5276213,ID=gene:MD16G1075500;Name=MD16G1075500;rfam_acc=RF00001;rfam_id=5S_rRNA
+Chr16,gene,5293404,5295993,ID=gene:MD16G1075600;Name=MD16G1075600;Note=Cyclophilin-like peptidyl-prolyl cis-trans isomerase family protein
+Chr16,gene,5303318,5304271,ID=gene:MD16G1075700;Name=MD16G1075700;Note=basic helix-loop-helix (bHLH) DNA-binding superfamily protein

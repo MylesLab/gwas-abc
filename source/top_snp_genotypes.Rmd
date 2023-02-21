@@ -1,0 +1,245 @@
+---
+title: "top_snp_genotypes"
+author: "Sophie Watts"
+date: "12/10/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = F, warning = F)
+
+library(tidyverse)
+library(EnvStats)
+
+```
+
+
+```{r prep}
+#Load p-values from standard and MLMM GWAS.
+
+#harvest date
+date_pvals_std <- read_csv("../gwas_results/standard_pvals/date_jul_17_harv_std_pvals.csv")
+date_pvals_mlmm <- read_csv("../gwas_results/mlmm_pvals/date_jul_17_harv_mlmm_pvals.csv")
+#NAC
+#what's the top snp on chr16 for harvest date?
+date_pvals_std <- date_pvals_std %>%
+  mutate(trimmed = str_sub(SNP, 2, -3)) %>% 
+  separate(trimmed, c("chr", "bp", "snp_caller"), sep="_")
+date_16 <- date_pvals_std %>% filter(chr == 16)
+
+#juiciness
+juiciness_std <- read_csv("../gwas_results/standard_pvals/juiciness_16_harv_std_pvals.csv")
+juiciness_mlmm <- read_csv("../gwas_results/mlmm_pvals/juiciness_16_harv_mlmm_pvals.csv")
+#NAC
+
+#firmness at harvest
+firm_harv_std <- read_csv("../gwas_results/standard_pvals/firmness_avg_17_harv_std_pvals.csv")
+firm_harv_mlmm <- read_csv("../gwas_results/mlmm_pvals/firmness_avg_17_harv_mlmm_pvals.csv")
+#NAC
+#what's the top snp on chr16 for firmness after harvest?
+firm_harv_std <- firm_harv_std %>%
+  mutate(trimmed = str_sub(SNP, 2, -3)) %>% 
+  separate(trimmed, c("chr", "bp", "snp_caller"), sep="_")
+
+#firmness after storage
+firm_stor_std <- read_csv("../gwas_results/standard_pvals/firmness_avg_17_stor_std_pvals.csv")
+firm_stor_mlmm <- read_csv("../gwas_results/mlmm_pvals/firmness_avg_17_stor_mlmm_pvals.csv")
+#the top SNP is 16_9235229_tassel then NAC.
+
+#Brix after storage
+brix_stor_std <- read_csv("../gwas_results/standard_pvals/brix_17_stor_std_pvals.csv")
+brix_stor_mlmm <- read_csv("../gwas_results/mlmm_pvals/brix_17_stor_mlmm_pvals.csv")
+#NAC
+#what's the top snp on chr16 for brix after storage?
+brix_stor_std <- brix_stor_std %>%
+  mutate(trimmed = str_sub(SNP, 2, -3)) %>% 
+  separate(trimmed, c("chr", "bp", "snp_caller"), sep="_")
+brix_stor_std_16 <- brix_stor_std %>% filter(chr == 16)
+
+#Chnage in Brix
+change_brix_std <- read_csv("../gwas_results/standard_pvals/percent_brix_17_std_pvals.csv")
+change_brix_mlmm <- read_csv("../gwas_results/mlmm_pvals/percent_brix_17_mlmm_pvals.csv")
+#NAC
+
+
+#Softening
+change_firm_std <- read_csv("../gwas_results/standard_pvals/percent_firmness_avg_17_std_pvals.csv")
+change_firm_mlmm <- read_csv("../gwas_results/mlmm_pvals/percent_firmness_avg_17_mlmm_pvals.csv")
+#Top SNP: 10_27438934_tassel, 10_27285866_vineland_pg1
+
+#phenolics
+#load p-values from standard phenolics GWAS.
+phenolics_std <- read_csv("../gwas_results/standard_pvals/tpc_std_pvals.csv")
+phenolics_mlmm <- read_csv("../gwas_results/mlmm_pvals/tpc_mlmm_pvals.csv")
+#top hit on chromo 15 is X15_3806070_samtools_A
+phenolics_std <- phenolics_std %>%
+  mutate(trimmed = str_sub(SNP, 2, -3)) %>% 
+  separate(trimmed, c("chr", "bp", "snp_caller"), sep="_")
+phenolics_std_16 <- phenolics_std %>% filter(chr == 16)
+#top hit on chromosome 16 is X16_5256210_samtools_G
+
+#acidity
+acidity_harv_std <- read_csv("../gwas_results/standard_pvals/acidity_17_harv_std_pvals.csv")
+acidity_harv_mlmm <- read_csv("../gwas_results/mlmm_pvals/acidity_17_harv_mlmm_pvals.csv")
+
+acidity_stor_std <- read_csv("../gwas_results/standard_pvals/acidity_17_stor_std_pvals.csv")
+acidity_stor_mlmm <- read_csv("../gwas_results/mlmm_pvals/acidity_17_stor_mlmm_pvals.csv")
+
+
+
+
+
+```
+
+
+```{r top_snps}
+#need to get plink file with the genotype for each snp
+
+#/project/6003429/myles_lab/bin/plink_linux_x86_64/plink --file abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001 --extract top_snps.txt --out abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_top_gwas_snps --recode A
+
+#load SNP genotypes
+snp_genos <- read_table2("../data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_top_gwas_snps.raw")
+
+snp_genos <- snp_genos %>% select(1,7:12)
+
+#rename snp names
+snp_genos <- snp_genos %>% rename(apple_id = FID, nac = `3_30698039_vineland_nac_A`, pg1 = `10_27285866_vineland_pg1_T`, soft_top_chr10 = `10_27438934_tassel_T`, tpc_top_chr15 = `15_3806070_samtools_A`, tpc_2nd_chr16 = `16_5256210_samtools_G`, firm_stor_top_chr16 = `16_9235229_tassel_C`)
+
+#load in PED file to get the alleles at each SNP so we can label the boxplots accordingly.
+
+snp_ped <- read_table2("../data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_top_gwas_snps.ped", 
+    col_names = FALSE, col_types = cols(T_1 = col_character(), 
+        T_2 = col_character()))
+
+snp_ped <- snp_ped %>% select(X1, X7:X18)
+
+snp_map <- read_table("../data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001_top_gwas_snps.map", 
+    col_names = FALSE)
+
+#rename columns in snp ped to match snp map.
+snp_ped <- snp_ped %>% rename(apple_id = X1, 
+                              nac_1 = X7, nac_2 = X8,
+                              pg1_1 = X9, pg1_2 = X10, 
+                              soft_top_chr10_1 = X11, soft_top_chr10_2 = X12,
+                              tpc_top_chr15_1 = X13, tpc_top_chr15_2 = X14,
+                              tpc_2nd_chr16_1 = X15, tpc_2nd_chr16_2 = X16,
+                              firm_stor_top_chr16_1 = X17, firm_stor_top_chr16_2 = X18)
+
+#sanity check the allele frequencies, so load in the freq file.
+snp_freq <- read_table("../data/abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001.frq")
+
+#NAC frequency
+table(snp_ped$nac_1)
+table(snp_ped$nac_2)
+#A: 488, 0.2314991
+#C: 1620, 0.7685009
+#total:2108
+#MAF is 0.2315
+
+#PG frequency
+table(snp_ped$pg1_1)
+table(snp_ped$pg1_2)
+#G: 1294, 0.613852
+#T: 814, 0.386148
+#MAF: 0.3861
+
+#Soft top
+table(snp_ped$soft_top_chr10_1)
+table(snp_ped$soft_top_chr10_2)
+#C: 0.8747628
+#T: 0.1252372
+#MAF: 0.1252
+
+#TPC 15
+table(snp_ped$tpc_top_chr15_1)
+table(snp_ped$tpc_top_chr15_2)
+#A: 0.02988615
+#T: 0.9701139
+#MAF:0.02989
+
+#TPC 16
+table(snp_ped$tpc_2nd_chr16_1)
+table(snp_ped$tpc_2nd_chr16_2)
+#A: 0.9881404
+#G: 0.01185958
+#MAF: 0.01186
+
+#FIRM STORAGE
+table(snp_ped$firm_stor_top_chr16_1)
+table(snp_ped$firm_stor_top_chr16_2)
+#A: 0.7357685
+#C: 0.2642315
+#MAF: 0.2642
+
+#all looks good.
+
+#merge the snp geno and snp ped file.
+top_snp_genos <- left_join(snp_genos, snp_ped, by = "apple_id")
+
+top_snp_genos <- top_snp_genos %>% unite("nac_alleles", nac_1:nac_2, sep = "")
+top_snp_genos <- top_snp_genos %>% unite("pg1_alleles", pg1_1:pg1_2, sep = "")
+top_snp_genos <- top_snp_genos %>% unite("soft_top_chr10_alleles", soft_top_chr10_1:soft_top_chr10_2, sep = "")
+top_snp_genos <- top_snp_genos %>% unite("tpc_top_chr15_alleles", tpc_top_chr15_1:tpc_top_chr15_2, sep = "")
+top_snp_genos <- top_snp_genos %>% unite("tpc_2nd_chr16_alleles", tpc_2nd_chr16_1:tpc_2nd_chr16_2, sep = "")
+top_snp_genos <- top_snp_genos %>% unite("firm_stor_top_chr16_alleles", firm_stor_top_chr16_1:firm_stor_top_chr16_2, sep = "")
+
+
+#save file
+write_csv(top_snp_genos, file = "../outputs/top_snp_genos.csv", quote = "none")
+
+
+```
+
+
+
+```{r sample_size_check}
+
+#I wanted to check the differences in sample sizes between my boxplots and Zoe from the NAC paper. All checked out to be fine, in summary there are some samples that she has that I don't have because samples failed GBS, she doesn't have samples I have because I there was no HRM data for some samples but there genotype ended up being imputed.
+
+table_2 <- read_excel("~/Downloads/Supplementary files 2/Supp Tables/Table 2.xlsx", 
+     col_types = c("text", "text", "text", 
+        "text", "text", "text", "text", "text", 
+        "text", "text"), na = "NA")
+
+table_2 <- table_2 %>% select(apple_id="Apple ID", "NAC18.1", harvest="Harvest Date (Julian Days)")
+table_2 <- na.omit(table_2)
+
+#AA  AC  CC 
+#72 202 556 
+
+nac_snp <- nac_snp %>% select(apple_id, nac_alleles, date_jul_17_harv)
+table_2$apple_id <- as.numeric(as.character(table_2$apple_id))
+merged_nac <- table_2 %>% left_join(nac_snp)
+table(merged_nac$NAC18.1==merged_nac$nac_alleles)
+#there are 778 samples that we both share for harvest date.
+
+nac_snp <- na.omit(nac_snp)
+table(nac_snp$nac_alleles)
+#AA  AC  CC 
+#72 215 524 
+
+table(!nac_snp$apple_id %in% table_2$apple_id)
+#there are 33 samples that GBS but not HRM
+
+table(!table_2$apple_id %in% nac_snp$apple_id)
+#there are 52 samples that HRM but not GBS
+
+missing_hrm <- nac_snp[!nac_snp$apple_id %in% table_2$apple_id,]
+missing_gbs <- table_2[!table_2$apple_id %in% nac_snp$apple_id,]
+
+table(missing_hrm$nac_alleles)
+#AA AC CC 
+#1 24  8 
+
+table(missing_gbs$NAC18.1)
+#AA AC CC 
+#1 11 40 
+
+#These last two tables align with the differences seen between the two sets of genotype sets. As an example I have AA that Zoe doens't and she has one AA that don't have, but it balances out for us both to have the same overall number of AAs.
+
+
+
+
+
+```
+

@@ -17,9 +17,8 @@ library(patchwork)
 
 ```{r zoom_softening}
 #load SNP p-values
-multi_firmness_change_pvals <- read_csv("../multi-gwas/mlmm_pvals/percent_firmness_avg_17_mlmm_pvals.csv") 
 
-std_firmness_change_pvals <- read_csv("../multi-gwas/standard_pvals/percent_firmness_avg_17_std_pvals.csv")
+std_firmness_change_pvals <- read_csv("../gwas_results/standard_pvals/percent_firmness_avg_17_std_pvals.csv")
 
 firmness_change <- std_firmness_change_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
 
@@ -34,7 +33,7 @@ firmness_change <- firmness_change %>% filter(bp <= 30000000)
 #change to -log10 p-values
 firmness_change <- firmness_change %>% mutate(log_pval = -log10(pval))
 
-mlmm_top <- firmness_change %>% filter(bp == 27438934)
+top_snp <- firmness_change %>% filter(bp == 27438934)
 pg1_marker <- firmness_change %>% filter(bp == 27285866)
 
 #load gene models
@@ -43,14 +42,14 @@ gene_models <- read_delim("../data/gene_models_20170612.gff3.gz",
     col_names = FALSE, trim_ws = TRUE)
 gene_models <- gene_models %>% select(X1,X3,X4,X5,X9)
 gene_models <- gene_models %>% rename(chromosome = X1, class = X3, start = X4, stop = X5, annotation = X9)
-#look at gene models 50kb from top mlmm hit. 
+#look at gene models 50kb from top hit. 
 gene_models <- gene_models %>% filter(class == "gene")
 gene_models <- gene_models %>% filter(chromosome == "Chr10")
 #only going to pull genes from a 50kb region around the top hit
 gene_models <- gene_models %>% filter(start >= 27388934)
 gene_models <- gene_models %>% filter(stop <= 27488934)
 #save table
-write.csv(gene_models, file = "../outputs/gene_annotations/chr10_zoom_gene_annots.csv", quote = F, row.names = F, col.names = T)
+write.csv(gene_models, file = "../outputs/gene_annotations/soft_chr10_zoom_gene_annots.csv", quote = F, row.names = F, col.names = T)
 
 
 #larger window
@@ -78,36 +77,8 @@ ggsave("../figures/change_firmness_zoom.pdf", plot = zoom_chr10_firmness_change)
 
 
 ```{r zoom_phenolics}
-#load SNP p-values
-tpc_std_pvals <- read_csv("../multi-gwas/standard_pvals/tpc_std_pvals.csv")
+# top snp 3806070
 
-tpc_mlmm_pvals <- read_csv("../multi-gwas/mlmm_pvals/tpc_mlmm_pvals.csv")
-
-tpc_std_pvals <- tpc_std_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
-
-tpc_std_pvals$chr <- as.numeric(as.character(tpc_std_pvals$chr))
-tpc_std_pvals$bp <- as.numeric(as.character(tpc_std_pvals$bp))
-
-#change to -log10 p-values
-tpc_std_pvals <- tpc_std_pvals %>% mutate(log_pval = -log10(pval))
-
-#filter for chromosome 15 and region, 2.5 MB either side of 3806070
-tpc_15 <- tpc_std_pvals %>% filter(chr == 15)
-tpc_15 <- tpc_15 %>% filter(bp >= 1306070)
-tpc_15 <- tpc_15 %>% filter(bp <= 6306070)
-
-#filter for chromosome 16, top hit is 5256210
-tpc_16 <- tpc_std_pvals %>% filter(chr == 16)
-tpc_16 <- tpc_16 %>% filter(bp >= 2756210)
-tpc_16 <- tpc_16 %>% filter(bp <= 7756210)
-
-
-#pick out the top mlmm marker
-mlmm_top_15 <- tpc_std_pvals %>% filter(bp == 3806070)
-mlmm_top_15_bonus <- tpc_std_pvals %>% filter(bp == 3547841)
-mlmm_top_16 <- tpc_std_pvals %>% filter(bp == 3457915)
-
-  
 #load gene models
 gene_models <- read_delim("../data/gene_models_20170612.gff3.gz", 
     delim = "\t", escape_double = FALSE, 
@@ -132,15 +103,7 @@ gene_models_16 <- gene_models_16 %>% filter(stop <= 5306210)
 #save table
 write.csv(gene_models_16, file = "../outputs/gene_annotations/tpc_chr16_std_zoom_gene_annots.csv", quote = F, row.names = F, col.names = T)
 
-#look at genes in region on chromosome 16 (mlmm top hit), 3457915
-gene_models_16_mlmm <- gene_models %>% filter(chromosome == "Chr16")
-#only going to pull genes from a 50kb region around the top hit
-gene_models_16_mlmm <- gene_models_16_mlmm %>% filter(start >= 3407915)
-gene_models_16_mlmm <- gene_models_16_mlmm %>% filter(stop <= 3507915)
-#save table
-write.csv(gene_models_16_mlmm, file = "../outputs/gene_annotations/tpc_chr16_mlmm_zoom_gene_annots.csv", quote = F, row.names = F, col.names = T)
-
-#plot chromosome 15 hit
+#plot zooms
 zoom_chr15_tpc <- ggplot(tpc_15, aes(x=bp, y=log_pval))+
   geom_point(size=2, alpha=0.6, stroke=0)+
   geom_point(data=mlmm_top_15, 
@@ -175,8 +138,8 @@ ggsave("../figures/zoom_chr16_tpc.pdf", plot = zoom_chr16_tpc)
 
 ```{r zoom_firm_stor}
 #load SNP p-values
-firmness_stor_mlmm_pvals <- read_csv("../multi-gwas/mlmm_pvals/firmness_avg_17_stor_mlmm_pvals.csv")
-firmness_stor_std_pvals <- read_csv("../multi-gwas/standard_pvals/firmness_avg_17_stor_std_pvals.csv")
+
+firmness_stor_std_pvals <- read_csv("../gwas_results/standard_pvals/firmness_avg_17_stor_std_pvals.csv")
 
 firmness_stor_std_pvals <- firmness_stor_std_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
 
@@ -190,15 +153,6 @@ firmness_stor_std_pvals <- firmness_stor_std_pvals %>% mutate(log_pval = -log10(
 firm_stor_16 <- firmness_stor_std_pvals %>% filter(chr == 16)
 firm_stor_16 <- firm_stor_16 %>% filter(bp >= 6735229)
 firm_stor_16 <- firm_stor_16 %>% filter(bp <= 11735229)
-
-#filter for chromosome 3 and region, 2.5 MB either side of 30,698,039
-firm_stor_3 <- firmness_stor_std_pvals %>% filter(chr == 3)
-firm_stor_3 <- firm_stor_3 %>% filter(bp >= 28198039)
-firm_stor_3 <- firm_stor_3 %>% filter(bp <= 33198039)
-
-
-#pick out the top mlmm markers
-mlmm_top_3 <- firmness_stor_std_pvals %>% filter(bp == 30698039)
 
 #load gene models
 gene_models <- read_delim("../data/gene_models_20170612.gff3.gz", 
@@ -216,361 +170,28 @@ gene_models_16 <- gene_models_16 %>% filter(stop <= 9285229)
 #save table
 write.csv(gene_models_16, file = "../outputs/gene_annotations/firm_stor_chr16_zoom_gene_annots.csv", quote = F, row.names = F, col.names = T)
 
-#look at genes in region on chromosome 3, 30698039
+
+```
+
+
+```{r zoom_nac}
+
+#load SNP p-values
+
+#load gene models
+gene_models <- read_delim("../data/gene_models_20170612.gff3.gz", 
+    delim = "\t", escape_double = FALSE, 
+    col_names = FALSE, trim_ws = TRUE)
+gene_models <- gene_models %>% select(X1,X3,X4,X5,X9)
+gene_models <- gene_models %>% rename(chromosome = X1, class = X3, start = X4, stop = X5, annotation = X9)
+gene_models <- gene_models %>% filter(class == "gene")
+
+#look at genes in 50kb region on chromosome 3, 30,698,039
 gene_models_3 <- gene_models %>% filter(chromosome == "Chr03")
 #only going to pull genes from a 50kb region around the top hit
 gene_models_3 <- gene_models_3 %>% filter(start >= 30648039)
 gene_models_3 <- gene_models_3 %>% filter(stop <= 30748039)
 #save table
-write.csv(gene_models_3, file = "../outputs/gene_annotations/firm_stor_chr3_std_zoom_gene_annots.csv", quote = F, row.names = F, col.names = T)
-
-zoom_chr16_firm_stor <- ggplot(firm_stor_16, aes(x=bp, y=log_pval))+
-  geom_point(size=2, alpha=0.6, stroke=0)+
-  theme_bw()+
-  geom_hline(yintercept=6.625633, linetype="dashed")+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.text.x = element_text(angle = 90, hjust = 1), axis.title=element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black", size = 0.2), plot.title = element_text(size = 9))
-#ggsave("../figures/zoom_chr16_firm_stor.pdf", plot = zoom_chr16_firm_stor)
-
-zoom_chr3_firm_stor <- ggplot(firm_stor_3, aes(x=bp, y=log_pval))+
-  geom_point(size=2, alpha=0.6, stroke=0)+
-  geom_point(data=mlmm_top_3, 
-             aes(x=bp,y=log_pval), 
-             color="#d8456c",
-             size=2,
-             stroke=0)+
-  labs(x="Chromosome 3 (Mb)", y="-log10(p)")+
-  theme_bw()+
-  geom_hline(yintercept=6.625633, linetype="dashed")+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title = element_text(face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-#ggsave("../figures/zoom_chr3_firm_stor.pdf", plot = zoom_chr3_firm_stor)
+write.csv(gene_models_3, file = "../outputs/gene_annotations/nac_chr3_zoom_gene_annots.csv", quote = F, row.names = F, col.names = T)
 
 ```
-
-
-```{r zoom_date}
-
-#load SNP p-values
-date_std_pvals <- read_csv("../multi-gwas/standard_pvals/date_jul_17_harv_std_pvals.csv")
-#date_mlmm_pvals <- read_csv("../multi-gwas/mlmm_pvals/date_jul_17_harv_mlmm_pvals.csv")
-
-date_std_pvals <- date_std_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
-
-date_std_pvals$chr <- as.numeric(as.character(date_std_pvals$chr))
-date_std_pvals$bp <- as.numeric(as.character(date_std_pvals$bp))
-
-#change to -log10 p-values
-date_std_pvals <- date_std_pvals %>% mutate(log_pval = -log10(pval))
-
-#filter for chromosome 3 and region, 2.5 MB either side of 30,698,039
-date_3 <- date_std_pvals %>% filter(chr == 3)
-date_3 <- date_3 %>% filter(bp >= 28198039)
-date_3 <- date_3 %>% filter(bp <= 33198039)
-
-#pick out the top mlmm markers
-mlmm_top_3 <- date_3 %>% filter(bp == 30698039)
-
-
-zoom_chr3_date <- ggplot(date_3, aes(x=bp, y=log_pval))+
-  geom_point(size=2, alpha=0.6, stroke=0)+
-  geom_point(data=mlmm_top_3, 
-             aes(x=bp,y=log_pval), 
-             color="#d8456c",
-             size=2,
-             stroke=0)+
-  labs(x="Chromosome 3 (Mb)", y="-log10(p)")+
-  scale_y_continuous(limits = c(0,50))+
-  scale_x_continuous(labels = c("2.8", "2.9", "3.0", "3.1", "3.2", "3.3"))+
-  theme_bw()+
-  geom_hline(yintercept=6.625633, linetype="dashed")+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title = element_text(face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-#ggsave("../figures/zoom_chr3_date.pdf", plot = zoom_chr3_date)
-
-```
-
-
-```{r zoom_juicy}
-#load SNP p-values
-juicy_std_pvals <- read_csv("../multi-gwas/standard_pvals/juiciness_16_harv_std_pvals.csv")
-#juicy_mlmm_pvals <- read_csv("../multi-gwas/mlmm_pvals/juiciness_16_harv_mlmm_pvals.csv")
-
-juicy_std_pvals <- juicy_std_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
-
-juicy_std_pvals$chr <- as.numeric(as.character(juicy_std_pvals$chr))
-juicy_std_pvals$bp <- as.numeric(as.character(juicy_std_pvals$bp))
-
-#change to -log10 p-values
-juicy_std_pvals <- juicy_std_pvals %>% mutate(log_pval = -log10(pval))
-
-#filter for chromosome 3 and region, 2.5 MB either side of 30,698,039
-juicy_3 <- juicy_std_pvals %>% filter(chr == 3)
-juicy_3 <- juicy_3 %>% filter(bp >= 28198039)
-juicy_3 <- juicy_3 %>% filter(bp <= 33198039)
-
-#pick out the top mlmm markers
-mlmm_top_3 <- juicy_3 %>% filter(bp == 30698039)
-
-
-zoom_chr3_juicy <- ggplot(juicy_3, aes(x=bp, y=log_pval))+
-  geom_point(size=2, alpha=0.6, stroke=0)+
-  geom_point(data=mlmm_top_3, 
-             aes(x=bp,y=log_pval), 
-             color="#d8456c",
-             size=2,
-             stroke=0)+
-  labs(x="Chromosome 3 (Mb)", y="-log10(p)")+
-  theme_bw()+
-  geom_hline(yintercept=6.625633, linetype="dashed")+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title = element_text(face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-#ggsave("../figures/zoom_chr3_juicy.pdf", plot = zoom_chr3_juicy)
-
-```
-
-
-```{r zoom_change_brix}
-
-#load SNP p-values
-
-percent_brix_std_pvals <- read_csv("../multi-gwas/standard_pvals/percent_brix_17_std_pvals.csv")
-percent_brix_mlmm_pvals <- read_csv("../multi-gwas/mlmm_pvals/percent_brix_17_mlmm_pvals.csv")
-
-percent_brix_std_pvals <- percent_brix_std_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
-
-percent_brix_std_pvals$chr <- as.numeric(as.character(percent_brix_std_pvals$chr))
-percent_brix_std_pvals$bp <- as.numeric(as.character(percent_brix_std_pvals$bp))
-
-#change to -log10 p-values
-percent_brix_std_pvals <- percent_brix_std_pvals %>% mutate(log_pval = -log10(pval))
-
-#filter for chromosome 3 and region, 2.5 MB either side of 30,698,039
-percent_brix_3 <- percent_brix_std_pvals %>% filter(chr == 3)
-percent_brix_3 <- percent_brix_3 %>% filter(bp >= 28198039)
-percent_brix_3 <- percent_brix_3 %>% filter(bp <= 33198039)
-
-#pick out the top mlmm markers
-mlmm_top_3 <- percent_brix_3 %>% filter(bp == 30698039)
-
-zoom_chr3_percent_brix <- ggplot(percent_brix_3, aes(x=bp, y=log_pval))+
-  geom_point(size=2, alpha=0.6, stroke=0)+
-  geom_point(data=mlmm_top_3, 
-             aes(x=bp,y=log_pval), 
-             color="#d8456c",
-             size=2,
-             stroke=0)+
-  labs(x="Chromosome 3 (Mb)", y="-log10(p)")+
-  theme_bw()+
-  geom_hline(yintercept=6.625633, linetype="dashed")+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title = element_text(face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-#ggsave("../figures/zoom_chr3_percent_brix.pdf", plot = zoom_chr3_percent_brix)
-
-```
-
-
-```{r zoom_brix_stor}
-
-#load SNP p-values
-
-brix_stor_mlmm_pvals <- read_csv("../multi-gwas/mlmm_pvals/brix_17_stor_mlmm_pvals.csv")
-brix_stor_std_pvals <- read_csv("../multi-gwas/standard_pvals/brix_17_stor_std_pvals.csv")
-
-brix_stor_std_pvals <- brix_stor_std_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
-
-brix_stor_std_pvals$chr <- as.numeric(as.character(brix_stor_std_pvals$chr))
-brix_stor_std_pvals$bp <- as.numeric(as.character(brix_stor_std_pvals$bp))
-
-#change to -log10 p-values
-brix_stor_std_pvals <- brix_stor_std_pvals %>% mutate(log_pval = -log10(pval))
-
-#filter for chromosome 3 and region, 2.5 MB either side of 30,698,039
-brix_stor_3 <- brix_stor_std_pvals %>% filter(chr == 3)
-brix_stor_3 <- brix_stor_3 %>% filter(bp >= 28198039)
-brix_stor_3 <- brix_stor_3 %>% filter(bp <= 33198039)
-
-#pick out the top mlmm markers
-mlmm_top_3 <- brix_stor_3 %>% filter(bp == 30698039)
-
-zoom_chr3_brix_stor <- ggplot(brix_stor_3, aes(x=bp, y=log_pval))+
-  geom_point(size=2, alpha=0.6, stroke=0)+
-  geom_point(data=mlmm_top_3, 
-             aes(x=bp,y=log_pval), 
-             color="#d8456c",
-             size=2,
-             stroke=0)+
-  labs(x="Chromosome 3 (Mb)", y="-log10(p)")+
-  theme_bw()+
-  geom_hline(yintercept=6.625633, linetype="dashed")+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title = element_text(face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-#ggsave("../figures/zoom_chr3_brix_stor.pdf", plot = zoom_chr3_brix_stor)
-
-```
-
-
-```{r zoom_firm_harv}
-#load SNP p-values
-
-firm_harv_std_pvals <- read_csv("../multi-gwas/standard_pvals/firmness_avg_17_harv_std_pvals.csv")
-#firm_harv_mlmm_pvals <- read_csv("../multi-gwas/mlmm_pvals/firmness_avg_17_harv_mlmm_pvals.csv")
-
-firm_harv_std_pvals <- firm_harv_std_pvals %>% mutate(trimmed = str_sub(SNP, 2, -3)) %>% separate(trimmed, c("chr", "bp", "snp_caller"), sep="_") %>% select(chr, bp, snp_caller, pval)
-
-firm_harv_std_pvals$chr <- as.numeric(as.character(firm_harv_std_pvals$chr))
-firm_harv_std_pvals$bp <- as.numeric(as.character(firm_harv_std_pvals$bp))
-
-#change to -log10 p-values
-firm_harv_std_pvals <- firm_harv_std_pvals %>% mutate(log_pval = -log10(pval))
-
-#filter for chromosome 3 and region, 2.5 MB either side of 30,698,039
-firm_harv_3 <- firm_harv_std_pvals %>% filter(chr == 3)
-firm_harv_3 <- firm_harv_3 %>% filter(bp >= 28198039)
-firm_harv_3 <- firm_harv_3 %>% filter(bp <= 33198039)
-
-#pick out the top mlmm markers
-mlmm_top_3 <- firm_harv_3 %>% filter(bp == 30698039)
-
-
-zoom_chr3_firm_harv <- ggplot(firm_harv_3, aes(x=bp, y=log_pval))+
-  geom_point(size=2, alpha=0.6, stroke=0)+
-  geom_point(data=mlmm_top_3, 
-             aes(x=bp,y=log_pval), 
-             color="#d8456c",
-             size=2,
-             stroke=0)+
-  labs(x="Chromosome 3 (Mb)", y="-log10(p)")+
-  theme_bw()+
-  geom_hline(yintercept=6.625633, linetype="dashed")+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title = element_text(face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-#ggsave("../figures/zoom_chr3_firm_harv.pdf", plot = zoom_chr3_firm_harv)
-```
-
-
-```{r boxplots}
-
-#MAKE BOXPLOTS
-
-#load in SNP genotypes.
-top_snp_genos <- read_csv("~/Documents/myles_lab/abc-gwas/outputs/top_snp_genos.csv")
-#keep SNPs for nac
-nac_snp <- top_snp_genos %>% select(apple_id, nac, nac_alleles)
-
-#load phenotype data
-geno_pheno_meta_data <- read_csv("../outputs/geno_pheno_meta_data.csv")
-nac_pheno <- geno_pheno_meta_data %>% select(apple_id, date_jul_17_harv, juiciness_16_harv, firmness_avg_17_stor, firmness_avg_17_harv, percent_brix_17, brix_17_stor)
-
-#join pheno data and snp data
-nac_snp <- left_join(nac_snp, nac_pheno, by = "apple_id")
-
-#make subset for each pheno
-date <- nac_snp %>% select(date_jul_17_harv, nac, nac_alleles) %>% filter(!is.na(date_jul_17_harv))
-juicy <- nac_snp %>% select(juiciness_16_harv, nac, nac_alleles) %>% filter(!is.na(juiciness_16_harv))
-firm_stor <- nac_snp %>% select(firmness_avg_17_stor, nac, nac_alleles) %>% filter(!is.na(firmness_avg_17_stor))
-firm_harv <- nac_snp %>% select(firmness_avg_17_harv, nac, nac_alleles) %>% filter(!is.na(firmness_avg_17_harv))
-change_brix <- nac_snp %>% select(percent_brix_17, nac, nac_alleles) %>% filter(!is.na(percent_brix_17))
-brix_stor <- nac_snp %>% select(brix_17_stor, nac, nac_alleles) %>% filter(!is.na(brix_17_stor))
-
-date_nac <- ggplot(date, aes(x=factor(nac, levels = c("2", "1", "0")), y=date_jul_17_harv)) + 
-  geom_jitter(aes(colour=as.factor(nac)), position = position_jitterdodge(jitter.width = 1, dodge.width =0.8),stroke=0, alpha = 0.7, size=2, show.legend=FALSE) +
-  stat_summary(fun=median, geom = "crossbar",
-               position = position_dodge(width=0.8),
-               width=0.5,
-               size=0.2,
-               show.legend=FALSE)+
-  scale_colour_manual(values=c("#d8456c","#d8456c","#d8456c"))+
-  theme_bw()+
-  stat_n_text() + 
-  scale_x_discrete(labels = c('AA','AC','CC'))+
-  labs(x="NAC D5Y (Chr3:30698039)", y="Harvest date (Julian date)")+
-  scale_y_continuous(limits = c(217,300))+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-#ggsave(date_nac, file = "../figures/date_nac.pdf", width = 7, height = 10, units = "cm")
-
-juicy_nac <- ggplot(juicy, aes(x=factor(nac, levels = c("2", "1", "0")), y=juiciness_16_harv)) + 
-  geom_jitter(aes(colour=as.factor(nac)), position = position_jitterdodge(jitter.width = 1, dodge.width =0.8),stroke=0, alpha = 0.7, size=2, show.legend=FALSE) +
-  stat_summary(fun=median, geom = "crossbar",
-               position = position_dodge(width=0.8),
-               width=0.5,
-               size=0.2,
-               show.legend=FALSE)+
-  scale_colour_manual(values=c("#d8456c","#d8456c","#d8456c"))+
-  theme_bw()+
-  stat_n_text() + 
-  scale_x_discrete(labels = c('AA','AC','CC'))+
-  labs(x="NAC D5Y (Chr3:30698039)", y="Juiciness")+
-  scale_y_continuous(limits = c(-2,25), breaks = c(0,5,10,15, 20, 25))+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-#ggsave(juicy_nac, file = "../figures/juicy_nac.pdf", width = 7, height = 10, units = "cm")
-
-firm_stor_nac <- ggplot(firm_stor, aes(x=factor(nac, levels = c("2", "1", "0")), y=firmness_avg_17_stor)) +
-  geom_jitter(aes(colour=as.factor(nac)), position = position_jitterdodge(jitter.width = 1, dodge.width =0.8),stroke=0, alpha = 0.7, size=2, show.legend=FALSE) +
-  stat_summary(fun=median, geom = "crossbar",
-               position = position_dodge(width=0.8),
-               width=0.5,
-               size=0.2,
-               show.legend=FALSE)+
-  scale_colour_manual(values=c("#d8456c","#d8456c","#d8456c"))+
-  theme_bw()+
-  stat_n_text() + 
-  scale_x_discrete(labels = c('AA','AC','CC'))+
-  scale_y_continuous(limits = c(0,15))+
-  labs(x="NAC D5Y (Chr3:30698039)", y="Firmness after storage (kg/cm2)")+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-#ggsave(firm_stor_nac, file = "../figures/firm_stor_nac.pdf", width = 7, height = 10, units = "cm")
-
-firm_harv_nac <- ggplot(firm_harv, aes(x=factor(nac, levels = c("2", "1", "0")), y=firmness_avg_17_harv)) +
-  geom_jitter(aes(colour=as.factor(nac)), position = position_jitterdodge(jitter.width = 1, dodge.width =0.8),stroke=0, alpha = 0.7, size=2, show.legend=FALSE) +
-  stat_summary(fun=median, geom = "crossbar",
-               position = position_dodge(width=0.8),
-               width=0.5,
-               size=0.2,
-               show.legend=FALSE)+
-  scale_colour_manual(values=c("#d8456c","#d8456c","#d8456c"))+
-  theme_bw()+
-  stat_n_text() + 
-  scale_x_discrete(labels = c('AA','AC','CC'))+
-  scale_y_continuous(limits = c(0,15))+
-  labs(x="NAC D5Y (Chr3:30698039)", y="Firmness at harvest (kg/cm2)")+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-#ggsave(firm_harv_nac, file = "../figures/firm_harv_nac.pdf", width = 7, height = 10, units = "cm")
-
-change_brix_nac <- ggplot(change_brix, aes(x=factor(nac, levels = c("2", "1", "0")), y=percent_brix_17)) +
-  geom_jitter(aes(colour=as.factor(nac)), position = position_jitterdodge(jitter.width = 1, dodge.width =0.8),stroke=0, alpha = 0.7, size=2, show.legend=FALSE) +
-  stat_summary(fun=median, geom = "crossbar",
-               position = position_dodge(width=0.8),
-               width=0.5,
-               size=0.2,
-               show.legend=FALSE)+
-  scale_colour_manual(values=c("#d8456c","#d8456c","#d8456c"))+
-  theme_bw()+
-  stat_n_text() + 
-  scale_x_discrete(labels = c('AA','AC','CC'))+
-  scale_y_continuous(limits = c(-65,65),breaks=c(-50, -25, 0, 25, 50))+
-  labs(x="NAC D5Y (Chr3:30698039)", y="Change in SSC during storage (%)")+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-#ggsave(change_brix_nac, file = "../figures/change_brix_nac.pdf", width = 7, height = 10, units = "cm")
-
-brix_stor_nac <- ggplot(brix_stor, aes(x=factor(nac, levels = c("2", "1", "0")), y=brix_17_stor)) +
-  geom_jitter(aes(colour=as.factor(nac)), position = position_jitterdodge(jitter.width = 1, dodge.width =0.8),stroke=0, alpha = 0.7, size=2, show.legend=FALSE) +
-  stat_summary(fun=median, geom = "crossbar",
-               position = position_dodge(width=0.8),
-               width=0.5,
-               size=0.2,
-               show.legend=FALSE)+
-  scale_colour_manual(values=c("#d8456c","#d8456c","#d8456c"))+
-  theme_bw()+
-  stat_n_text() + 
-  scale_x_discrete(labels = c('AA','AC','CC'))+
-  scale_y_continuous(limits = c(3,25))+
-  labs(x="NAC D5Y (Chr3:30698039)", y="SSC after storage (Brix)")+
-  theme(panel.border = element_blank(), axis.text=element_text(colour = "black", size=10), axis.title=element_text(size = 10, face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(size = 9))
-#ggsave(brix_stor_nac, file = "../figures/brix_stor_nac.pdf", width = 7, height = 10, units = "cm")
-
-combined_date <- zoom_chr3_date + date_nac +plot_annotation(tag_levels = 'A')
-ggsave(combined_date, file = "../figures/combined_date.pdf", width = 20, height = 10, units = "cm")
-
-
-```
-
-
-
-
-
-
-
