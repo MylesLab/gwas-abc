@@ -1,7 +1,7 @@
 <div align="center">
     <h1>Genome-wide association studies in Canada's Apple Biodiversity Collection</h1>
     <br />
-    Sophie Watts<sup>1</sup>, ‪Zoë Migicovsky<sup>1</sup>, Gavin M. Douglas<sup>1</sup>, Sean Myles*<sup>1</sup>
+    Sophie Watts<sup>1</sup>, ‪Zoë Migicovsky<sup>1</sup>, Sean Myles*<sup>1</sup>
     <br />
 </div>
 <b>Affiliations</b><br />
@@ -57,6 +57,7 @@ $ git clone https://github.com/MylesLab/abc-gwas.git
 ### 3c. Description of files
 
 ####Source####
+
 1. `phenotype_curation.Rmd` Code for curating phenotype table and outputting a list of phenotypes.
 2. `pop_analyses` Code for visualizing prinicipal components analysis.
 3. `gwas_script.Rmd` script to create shell scripts to filter phenotype and genotype data, create kinship matrices, run PCA.
@@ -71,6 +72,7 @@ $ git clone https://github.com/MylesLab/abc-gwas.git
 
 
 ####Data####
+
 1. `pheno_meta_data.csv` Phenotype data and meta data for all accessions in the ABC from [Watts et al. 2021](https://nph.onlinelibrary.wiley.com/doi/full/10.1002/ppp3.10211).
 2. `abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001.nosex` File with the apple IDS that have genetic data.
 3. `abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001.frq` Minor allele frequency file for ABC snps.
@@ -85,6 +87,7 @@ $ git clone https://github.com/MylesLab/abc-gwas.git
 12. `vineland_snps.txt` The list of SNPs that were genotyped using HRM.
 
 ####Outputs####
+
 1. `geno_pheno_meta_data.csv` Filtered phenotype table that includes 1054 apple IDs that have both phenotype data and genotype data.
 2. `pheno_list.txt` List with names of phenotypes from [Watts et al. 2021](https://nph.onlinelibrary.wiley.com/doi/full/10.1002/ppp3.10211).
 3. `pheno_list_2017` List with names of phenotypes used for GWAS.
@@ -102,6 +105,7 @@ $ git clone https://github.com/MylesLab/abc-gwas.git
 
 
 ####Shell Scripts####
+
 1. `abc_pca.sh` script to run PCA for the whole SNP set with TASSEL.
 2. `genotype_filtering_plink.sh` script that contains PLINK commands to filter the ABC MAP and PED to only containing apple IDs for a particular phenotype, applies a MAF filter of 0.01, and outputs a MAP and PED for each phenotype.
 2. `kinship.sh` script that contains the tassel commands to make a kinship matrix for each phenotype.
@@ -112,6 +116,7 @@ $ git clone https://github.com/MylesLab/abc-gwas.git
 
 
 ####GWAS results####
+
 1. `mlmm_pvals` Folder containing files for each phenotype with the SNP p-values from the MLMM GWAS.
 2. `mlmm_qq` Folder containing qq-plots from each MLMM GWAS.
 3. `mlmm_manhattans` Folder containing manhattan plots from each MLMM GWAS.
