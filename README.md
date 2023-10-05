@@ -56,7 +56,7 @@ $ git clone https://github.com/MylesLab/abc-gwas.git
 
 ### 3c. Description of files
 
-####Source####
+#### Source####
 
 1. `phenotype_curation.Rmd` Code for curating phenotype table and outputting a list of phenotypes.
 2. `pop_analyses` Code for visualizing prinicipal components analysis.
@@ -71,7 +71,7 @@ $ git clone https://github.com/MylesLab/abc-gwas.git
 11. `snp_variance` Script to calculate the proportion of variance explained by the top GWAS snps.
 
 
-####Data####
+#### Data####
 
 1. `pheno_meta_data.csv` Phenotype data and meta data for all accessions in the ABC from [Watts et al. 2021](https://nph.onlinelibrary.wiley.com/doi/full/10.1002/ppp3.10211).
 2. `abc_combined_maf001_sort_vineland_imputed_pheno_hetero90_maf001.nosex` File with the apple IDS that have genetic data.
@@ -86,7 +86,7 @@ $ git clone https://github.com/MylesLab/abc-gwas.git
 11. `gene_models_20170612.gff3.gz` Gene model annotations from the GDDH genome version 1.
 12. `vineland_snps.txt` The list of SNPs that were genotyped using HRM.
 
-####Outputs####
+#### Outputs####
 
 1. `geno_pheno_meta_data.csv` Filtered phenotype table that includes 1054 apple IDs that have both phenotype data and genotype data.
 2. `pheno_list.txt` List with names of phenotypes from [Watts et al. 2021](https://nph.onlinelibrary.wiley.com/doi/full/10.1002/ppp3.10211).
@@ -104,7 +104,7 @@ $ git clone https://github.com/MylesLab/abc-gwas.git
 13. `ripening_model_summary.csv` Median values for traits measurements across the genotypic classes at NAC18.1
 
 
-####Shell Scripts####
+#### Shell Scripts####
 
 1. `abc_pca.sh` script to run PCA for the whole SNP set with TASSEL.
 2. `genotype_filtering_plink.sh` script that contains PLINK commands to filter the ABC MAP and PED to only containing apple IDs for a particular phenotype, applies a MAF filter of 0.01, and outputs a MAP and PED for each phenotype.
@@ -115,7 +115,7 @@ $ git clone https://github.com/MylesLab/abc-gwas.git
 7. `run_mlmm_gwas_batch_script_final.sh` script to run the MLMM GWAS code.
 
 
-####GWAS results####
+#### GWAS results####
 
 1. `mlmm_pvals` Folder containing files for each phenotype with the SNP p-values from the MLMM GWAS.
 2. `mlmm_qq` Folder containing qq-plots from each MLMM GWAS.
